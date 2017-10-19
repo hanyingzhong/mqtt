@@ -5,8 +5,14 @@ import java.util.ArrayList;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-public class AssociationMessage {
+public class AssociationMessage implements ExchangeMqttMessage{
 	ArrayList<UpstreamBoxMessage> msgList;
+
+	@Override
+	public void handling() {
+		System.out.println("start handlle AssociationMessage");
+		showBoxInfos();
+	}
 
 	void decode(String topic, MqttMessage message) {
 		msgList = new ArrayList<UpstreamBoxMessage>();

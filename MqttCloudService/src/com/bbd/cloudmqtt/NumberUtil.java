@@ -158,5 +158,9 @@ public class NumberUtil {
 		}
 		return ret;
 	}
-		
+	
+	static void bytesArrayCopy(byte[] src, int srcPos, byte[] dest, int destPos, int length) {
+		System.arraycopy(src, srcPos, dest, destPos, length);
+	}
+
 }

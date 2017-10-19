@@ -2,13 +2,19 @@ package com.bbd.cloudmqtt;
 
 import java.io.UnsupportedEncodingException;
 
-public class UpstreamBoxMessage implements ExchangeMessage {
+public class UpstreamBoxMessage implements ExchangeMqttMessage {
 	String cabinetID;
 	int id;
 	boolean doorOpened;
 	boolean batteryExist;
 	String batteryID;
 	int capacity;
+
+	@Override
+	public void handling() {
+		System.out.println("start handlle AssociationMessage");
+		showBoxInfos();
+	}
 
 	public boolean isDoorOpened() {
 		return doorOpened;
@@ -33,7 +39,6 @@ public class UpstreamBoxMessage implements ExchangeMessage {
 	 * foramt : tag+length+content BoxID : A001-A00B length
 	 * Content:1,batteryID,capacity if no battery, length is Zero
 	 */
-	@Override
 	public byte[] encode() {
 		String boxInfo;
 		int pos = 0;
@@ -70,12 +75,12 @@ public class UpstreamBoxMessage implements ExchangeMessage {
 		return retMsg;
 	}
 
-	@Override
-	public ExchangeMessage decode(String topic, byte[] upbytes) {
+	public ExchangeMqttMessage decode(String topic, byte[] upbytes) {
 		int pos = 0;
 		int length;
 
-		id = NumberUtil.byte2ToUnsignedShort(upbytes);
+		decodeTopic(this, topic);
+		id = NumberUtil.byte2ToUnsignedShort(upbytes) - 0xa000;
 		length = NumberUtil.byte2ToUnsignedShort(upbytes, 2);
 		pos += 4;
 		if (length > 0) {
@@ -177,4 +182,7 @@ public class UpstreamBoxMessage implements ExchangeMessage {
 				+ ", batteryExist=" + batteryExist + ", batteryID=" + batteryID + ", capacity=" + capacity + "]";
 	}
 
+	void showBoxInfos() {
+			System.out.println(this.toString());
+	}
 }

@@ -93,6 +93,7 @@ public class HuandianguiService {
 		
 		try {
 			client.publish("d/HDG-000011/asso", msg, 0, false);
+			client.publish("d/HDG-000011/noti", msg, 0, false);
 		} catch (MqttPersistenceException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -160,7 +161,7 @@ public class HuandianguiService {
     	sendPublish("d/HDG-000011/modi", "hahahhhhhhhhhhhhhhhhhhh");
     	monitorMqttConnStatus();
     	
-    	//sendPublish();
+    	sendPublish();
     	sendPublish2();
 	}
 	
@@ -174,6 +175,7 @@ public class HuandianguiService {
 		}
 		
 		System.out.println("HelloWorld.");
+		new HandlingOriginalMqttMessage().run();
 		
 		while(true) {
 			try {
