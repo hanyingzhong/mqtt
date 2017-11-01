@@ -55,7 +55,7 @@ public class CabinetBoxObject implements ExchangeControlObject {
 			map.put(CabinetBoxObject.BATERYTYPE, ele.getBatteryID().substring(0, 1));
 			map.put(CabinetBoxObject.CAPACITY, ele.getCapacity());
 		} else {
-			map.put(CabinetBoxObject.STATUS, BATTEY_EXIST);
+			map.put(CabinetBoxObject.STATUS, BATTEY_EMPTY);
 			map.put(CabinetBoxObject.BATERYID, "null");
 			map.put(CabinetBoxObject.CAPACITY, "null");
 		}

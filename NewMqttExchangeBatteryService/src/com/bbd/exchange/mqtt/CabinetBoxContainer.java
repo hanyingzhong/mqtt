@@ -53,11 +53,11 @@ public class CabinetBoxContainer {
 		}
 
 		if (sub[0] != null) {
-			doorOpened = Integer.parseInt(sub[0]) == 1 ? true : false;
+			doorOpened = sub[0].equals("1") ? true : false;
 		}
 
 		if (sub[1] != null) {
-			batteryExist = Integer.parseInt(sub[1]) == 1 ? true : false;
+			batteryExist = sub[1].equals("1") ? true : false;
 		}
 
 		if (paramNum == 2) {
