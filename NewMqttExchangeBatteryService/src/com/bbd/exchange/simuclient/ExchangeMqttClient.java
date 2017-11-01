@@ -11,7 +11,7 @@ public class ExchangeMqttClient {
 	private static final MqttDefaultFilePersistence DATA_STORE = new MqttDefaultFilePersistence("/tmp");
 	MqttConnectOptions options;
 	MqttClient client;
-	
+	SimulationClientMqttMsgCallback callback;
 	String server;
 	String username;
 	String password;
@@ -20,7 +20,8 @@ public class ExchangeMqttClient {
 	
 	void initClient() throws Exception {
 		client = new MqttClient(server, clientId, DATA_STORE);
-		client.setCallback(new SimulationClientMqttMsgCallback());		
+		callback = new SimulationClientMqttMsgCallback();
+		client.setCallback(callback);		
 	}
 	
 	public boolean connect() {
@@ -111,6 +112,10 @@ public class ExchangeMqttClient {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	public MqttClient getClient() {
+		return client;
 	}
 
 }

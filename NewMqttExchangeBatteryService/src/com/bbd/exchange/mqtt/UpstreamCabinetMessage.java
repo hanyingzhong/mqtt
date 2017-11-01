@@ -3,15 +3,25 @@ package com.bbd.exchange.mqtt;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bbd.exchange.control.AssociatedCabinetMessageHandling;
+import com.bbd.exchange.control.NotifyCabinetMessageHandling;
 import com.bbd.exchange.util.NumberUtil;
 
 public class UpstreamCabinetMessage implements ExchangeMqttMessage {
+    private static final Logger logger = LoggerFactory.getLogger(UpstreamCabinetMessage.class);
+
 	String deviceID;
 	String cabinetID;
 	String verb;
 
 	List<CabinetBoxContainer> boxList = new LinkedList<CabinetBoxContainer>();
+
+	public List<CabinetBoxContainer> getBoxList() {
+		return boxList;
+	}
 
 	public UpstreamCabinetMessage(String verb) {
 		this.verb = verb;
@@ -20,8 +30,13 @@ public class UpstreamCabinetMessage implements ExchangeMqttMessage {
 	@Override
 	public void handling() {
 		showMessage();
-		if(verb.equals("1")) {
+		if (verb.equals(InteractionCommand.UP_ASSOCIATE)) {
 			AssociatedCabinetMessageHandling.getInstance().handling(this);
+			return;
+		}
+
+		if (verb.equals(InteractionCommand.UP_NOTIFY)) {
+			NotifyCabinetMessageHandling.getInstance().handling(this);
 			return;
 		}
 	}
@@ -35,10 +50,10 @@ public class UpstreamCabinetMessage implements ExchangeMqttMessage {
 		deviceID = msg.getTopic().getDeviceID();
 		cabinetID = msg.getCabinet();
 		verb = msg.getCmd();
-				
+
 		for (CabinetBox ele : msg.msgList) {
 			CabinetBoxContainer box = new CabinetBoxContainer(msg.cabinet);
-			
+
 			box.id = ele.boxID;
 			if (false == box.decodeUpstream(ele.msg)) {
 				System.out.println("decode msg error : " + ele.msg);
@@ -54,7 +69,7 @@ public class UpstreamCabinetMessage implements ExchangeMqttMessage {
 	public String encodeTopic() {
 		return "u/" + deviceID;
 	}
-	
+
 	int encodeCabinetID(byte[] buffer, int pos) {
 		int posCurr = pos;
 		int id = 0x0100;
@@ -92,7 +107,7 @@ public class UpstreamCabinetMessage implements ExchangeMqttMessage {
 
 		pos = encodeCabinetID(msg, pos);
 		pos = encodeCommand(msg, pos);
-		
+
 		for (CabinetBoxContainer ele : boxList) {
 			byte[] content = ele.encode();
 			bytesArrayCopy(content, 0, msg, pos, content.length);
@@ -109,9 +124,9 @@ public class UpstreamCabinetMessage implements ExchangeMqttMessage {
 	}
 
 	void showMessage() {
-		System.out.println("device " + deviceID + ":" + verb);
+		logger.info("device " + deviceID + ":" + InteractionCommand.getCommandString(verb));
 		for (CabinetBoxContainer ele : boxList) {
-			System.out.println(ele.id + "===>" + verb + "," + ele.cabinetID + "," + ele.encodeBoxInfo());
+			logger.info("box:" + ele.id + "===>" + verb + "," + ele.cabinetID + "," + ele.encodeBoxInfo());
 		}
 	}
 

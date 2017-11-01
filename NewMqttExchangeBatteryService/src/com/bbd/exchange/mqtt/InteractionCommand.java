@@ -1,21 +1,51 @@
 package com.bbd.exchange.mqtt;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class InteractionCommand {
+	public static final String UP_ASSOCIATE = "1";
+	public static final String UP_DISASSOCIATE = "2";
+	public static final String UP_NOTIFY = "3";
+	public static final String UP_ALARM = "4";
+
+	public static final String DOWN_MODIFY = "5";
+	public static final String DOWN_PING = "6";
+	public static final String UP_PONG = "7";
+
+	public static final String DOWN_SUB_OPEN = "1";
+
+	static Map<String, String> cmdMap = new HashMap<String, String>();
+
+	static {
+		cmdMap.put(UP_ASSOCIATE, "associate");
+		cmdMap.put(UP_DISASSOCIATE, "disassociate");
+		cmdMap.put(UP_NOTIFY, "notify");
+		cmdMap.put(UP_ALARM, "alarm");
+		cmdMap.put(DOWN_MODIFY, "modify");
+		cmdMap.put(DOWN_PING, "ping");
+		cmdMap.put(UP_PONG, "pong");
+	}
+
+	static String getCommandString(String verb) {
+		return cmdMap.get(verb);
+	}
+
 	static String getCommandValue(String verb) {
 		if (verb.equals("asso")) {
-			return "1";
+			return UP_ASSOCIATE;
 		}
 
 		if (verb.equals("disa")) {
-			return "2";
+			return UP_DISASSOCIATE;
 		}
 
 		if (verb.equals("noti")) {
-			return "3";
+			return UP_NOTIFY;
 		}
 
 		if (verb.equals("alam")) {
-			return "4";
+			return UP_ALARM;
 		}
 
 		if (verb.equals("modi")) {
@@ -32,7 +62,7 @@ public class InteractionCommand {
 
 		return "0";
 	}
-	
+
 	static String getDownSubCommandValue(String verb) {
 		if (verb.equals("open")) {
 			return "1";
@@ -45,7 +75,7 @@ public class InteractionCommand {
 		if (verb.equals("synctime")) {
 			return "3";
 		}
-		
+
 		return "0";
 	}
 }

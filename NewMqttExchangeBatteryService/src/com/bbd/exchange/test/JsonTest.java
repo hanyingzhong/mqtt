@@ -1,6 +1,6 @@
 package com.bbd.exchange.test;
 
-import com.bbd.exchange.util.ClientRequestMessage;
+import com.bbd.exchange.mobile.ClientRequestMessage;
 
 public class JsonTest {
 	public static void main(String[] args) {

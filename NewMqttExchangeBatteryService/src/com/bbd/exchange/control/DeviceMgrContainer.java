@@ -4,6 +4,16 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/*
+ * A IoT device may associate at least one cabinet. two or more cabinets also exist.
+ * 
+ * for HashSet, thers is no same cabinet exist in the structure.
+ * 
+ * Device Mgr only store real time state information
+ * 
+ * 
+ * */
+
 public class DeviceMgrContainer implements ContainerManagment {
 	static ConcurrentHashMap<String, Set<String>> deviceMgr = new ConcurrentHashMap<String, Set<String>>();
 	static ConcurrentHashMap<String, String> cabinetMgr = new ConcurrentHashMap<String, String>();

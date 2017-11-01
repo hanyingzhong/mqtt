@@ -11,7 +11,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import com.bbd.exchange.util.ClientRequestMessage;
+import com.bbd.exchange.mobile.ClientRequestMessage;
 
 public class SimulationExchangeClient extends JFrame {
 	// 得到显示器屏幕的宽高
@@ -102,8 +102,8 @@ public class SimulationExchangeClient extends JFrame {
 		placeCabinetID(panel, font);
 		placeBatteryType(panel, font);
 		
-		// 创建登录按钮
-		JButton loginButton = new JButton("Start");
+		// create exchange button
+		JButton loginButton = new JButton("Exchange");
 		loginButton.setBounds(150, 300, 80, 25);
 		panel.add(loginButton);
 
@@ -113,6 +113,11 @@ public class SimulationExchangeClient extends JFrame {
 				ClientRequestMessage message = new ClientRequestMessage("exchange", clientIdText.getText(), cabinetIdText.getText(), batteryTypeText.getText());
 
 				System.out.println(message.toString());
+				
+				if(false == mqttClient.client.isConnected()) {
+					mqttClient.connect();				
+				}			
+				
 				if(mqttClient.client.isConnected()) {
 					mqttClient.sendPublish(message.getTopic(), message.toString());				
 				}

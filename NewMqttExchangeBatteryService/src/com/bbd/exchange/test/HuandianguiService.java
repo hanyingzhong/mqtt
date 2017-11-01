@@ -10,6 +10,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 
+import com.bbd.exchange.dbintf.CabinetLoadInterface;
 import com.bbd.exchange.mobile.MobileMqttMessageHandling;
 import com.bbd.exchange.mqtt.CabinetBoxContainer;
 import com.bbd.exchange.mqtt.DownstreamCabinetMessage;
@@ -101,14 +102,14 @@ public class HuandianguiService {
 
 		box.setId(1);
 		box.setBatteryExist(true);
-		box.setBatteryID("XB-72CF0001");
-		box.setCapacity(99);
+		box.setBatteryID("6AAA121104000111");
+		box.setCapacity("90");
 		msg.addBox(box);
 
 		box2.setId(2);
 		box2.setBatteryExist(true);
-		box2.setBatteryID("XB-99CF0001");
-		box2.setCapacity(90);
+		box2.setBatteryID("4AAA121104000111");
+		box2.setCapacity("90");
 		msg.addBox(box2);
 
 		box3.setId(3);
@@ -190,6 +191,8 @@ public class HuandianguiService {
 
 	@SuppressWarnings("static-access")
 	public static void main(String[] args) {
+		CabinetLoadInterface.getInstance().loadCabinetTable(3);
+		
 		try {
 			init();
 		} catch (Exception e) {
