@@ -113,6 +113,10 @@ public class CabinetBoxContainer {
 		return doorOpened;
 	}
 
+	public boolean isDoorClosed() {
+		return !doorOpened;
+	}
+	
 	public void setDoorOpened(boolean doorOpened) {
 		this.doorOpened = doorOpened;
 	}
@@ -120,7 +124,11 @@ public class CabinetBoxContainer {
 	public boolean isBatteryExist() {
 		return batteryExist;
 	}
-
+	
+	public boolean isBatteryNotExist() {
+		return !batteryExist;
+	}
+	
 	public void setBatteryExist(boolean batteryExist) {
 		this.batteryExist = batteryExist;
 	}

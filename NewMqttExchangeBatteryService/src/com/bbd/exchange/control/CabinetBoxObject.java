@@ -3,12 +3,24 @@ package com.bbd.exchange.control;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bbd.exchange.mqtt.CabinetBoxContainer;
+import com.bbd.exchange.util.RedisUtils;
+
+import redis.clients.jedis.Jedis;
 
 public class CabinetBoxObject implements ExchangeControlObject {
+	private static final Logger logger = LoggerFactory.getLogger(NotifyCabinetMessageHandling.class);
+
 	public static final String IDLE = "idle";
 	public static final String SELCTED = "selected";
+	public static final String EMPTY_W4OPENED = "empty_w4opened";
+	public static final String EMPTY_W4CLOSED = "empty_w4closed";
 	public static final String INEXCHANGE = "inexchange";
+	public static final String FULL_W4OPENED = "full_w4oepn";
+	public static final String FULL_W4CLOSED = "full_w4close";
 	public static final String OPENED = "opened";
 	public static final String CLOSED = "closed";
 
@@ -29,6 +41,8 @@ public class CabinetBoxObject implements ExchangeControlObject {
 	public static final String BATERYTYPE_60 = "6";
 	public static final String BATERYTYPE_72 = "7";
 
+	public static final int redisStoreAera = 2;
+	
 	String cabinetID;
 	int ID;
 	String boxID; /* cabinetID/1 */
@@ -67,12 +81,27 @@ public class CabinetBoxObject implements ExchangeControlObject {
 		}
 	}
 
+	public void store2Redis() {
+		Jedis jedis = RedisUtils.getJedis();
+		jedis.select(CabinetBoxObject.redisStoreAera);
+		jedis.hmset(getBoxID(), getMap());
+		RedisUtils.returnResource(jedis);
+	}
+	
+	public void storeSingleAttr2Redis(String attr) {
+		Jedis jedis = RedisUtils.getJedis();
+		jedis.select(CabinetBoxObject.redisStoreAera);
+		jedis.hset(getBoxID(), attr, getMap().get(attr));
+		RedisUtils.returnResource(jedis);
+	}
+
 	public String toString() {
 		return boxID + "£º" + map.toString();
 	}
 
 	public void newState(String state) {
 		map.put(CabinetBoxObject.STATE, state);
+		logger.info("{}, new state : {}", boxID, state);
 	}
 
 	public String getBoxID() {
@@ -87,4 +116,23 @@ public class CabinetBoxObject implements ExchangeControlObject {
 		return ID;
 	}
 
+	public String getBatteryType() {
+		return getMap().get(BATERYTYPE);
+	}
+	
+	public int getCapacity() {
+		return Integer.parseInt(getMap().get(CAPACITY));
+	}
+	
+	public String getBoxState() {
+		return getMap().get(STATE);
+	}
+
+	public String getCabinetID() {
+		return cabinetID;
+	}
+
+	public void setCabinetID(String cabinetID) {
+		this.cabinetID = cabinetID;
+	}
 }

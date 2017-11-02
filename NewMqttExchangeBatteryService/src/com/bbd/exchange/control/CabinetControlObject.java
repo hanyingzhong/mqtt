@@ -3,6 +3,8 @@ package com.bbd.exchange.control;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.bbd.exchange.mqtt.CabinetBoxContainer;
+
 public class CabinetControlObject implements ExchangeControlObject {
 	final static int defaultBoxNumberOfCabinet = 12;
 
@@ -51,6 +53,20 @@ public class CabinetControlObject implements ExchangeControlObject {
 		return boxObj;
 	}
 
+	public CabinetBoxObject getFullEnergyCabinetBox(String batteryType) {
+		CabinetBoxObject boxObj = null;
+		for (CabinetBoxObject s : nonEmptyBoxHashSet) {
+			if(s.getCapacity() > 80) {
+				boxObj = s;
+				nonEmptyBoxHashSet.remove(boxObj);
+				return boxObj;		
+			}
+		}
+
+		return null;
+	}
+
+	
 	public void move2EmptyBoxHashSet(CabinetBoxObject e) {
 		emptyBoxHashSet.add(e);
 		nonEmptyBoxHashSet.remove(e);
@@ -60,12 +76,26 @@ public class CabinetControlObject implements ExchangeControlObject {
 	public void move2NonEmptyBoxHashSet(CabinetBoxObject e) {
 		nonEmptyBoxHashSet.add(e);
 		emptyBoxHashSet.remove(e);
+		exceptionBoxHashSet.remove(e);
 	}
 	
 	public void move2ExceptionBoxHashSet(CabinetBoxObject e) {
 		exceptionBoxHashSet.add(e);
 		emptyBoxHashSet.remove(e);
 		nonEmptyBoxHashSet.remove(e);
+	}
+	
+	public void moveBox2HashSet(CabinetBoxObject e, CabinetBoxContainer ele) {
+		if(ele.isDoorClosed() && (ele.isBatteryExist() == false)) {
+			move2EmptyBoxHashSet(e);
+			return;
+		}
+		
+		if(ele.isDoorClosed() && (ele.isBatteryExist() == true)) {
+			move2NonEmptyBoxHashSet(e);
+			return;
+		}
+		
 	}
 	
 	public CabinetBoxObject getCabinetBox(int id) {

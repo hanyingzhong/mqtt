@@ -17,6 +17,12 @@ public class JreidsTest {
 		map.put("age", "22");
 		map.put("qq", "123456");
 		jedis.hmset("user", map);
+		
+		Map<String, String> newmap = new HashMap<String, String>();
+		newmap.put("name", "xinxin");
+		newmap.put("qq", "66677777");
+		jedis.hmset("user", newmap);
+		
 		// 取出user中的name，执行结果:[minxr]-->注意结果是一个泛型的List
 		// 第一个参数是存入redis中map对象的key，后面跟的是放入map中的对象的key，后面的key可以跟多个，是可变参数
 		List<String> rsmap = jedis.hmget("user", "name", "age", "qq");
