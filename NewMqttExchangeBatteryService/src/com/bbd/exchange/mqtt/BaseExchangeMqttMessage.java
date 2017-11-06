@@ -7,9 +7,10 @@ import java.util.List;
 import com.bbd.exchange.util.NumberUtil;
 
 public class BaseExchangeMqttMessage {
-	final static int cainetTagValue  = 0x0100;
+	final static int cainetTagValue = 0x0100;
 	final static int boxIdBaseValue = 0xa000;
-	final static int cmdTagValue    = 0x0501;
+	final static int cmdTagValue = 0x0501;
+	final static int timeTagValue = 0x9000;
 
 	public Topic getTopic() {
 		return topic;
@@ -18,7 +19,7 @@ public class BaseExchangeMqttMessage {
 	public class Topic {
 		String direction;
 		String deviceID;
-		
+
 		public Topic(String direction, String deviceID) {
 			this.direction = direction;
 			this.deviceID = deviceID;
@@ -37,6 +38,7 @@ public class BaseExchangeMqttMessage {
 	List<CabinetBox> msgList;
 	String cabinet = new String("");
 	String cmd = new String("");
+	String time = null;
 
 	public List<CabinetBox> getMsg() {
 		return msgList;
@@ -49,21 +51,21 @@ public class BaseExchangeMqttMessage {
 			return null;
 		}
 
-		if((sub[0].equals("d") != true) && (sub[0].equals("u") != true)) {
+		if ((sub[0].equals("d") != true) && (sub[0].equals("u") != true)) {
 			return null;
 		}
 
 		/*
 		 * check the cabinet encode validity....
 		 * 
-		 * */
-		
+		 */
+
 		/*
 		 * 
 		 * check the verb validity
 		 * 
-		 * */
-		
+		 */
+
 		return new Topic(sub[0], sub[1]);
 	}
 
@@ -71,16 +73,36 @@ public class BaseExchangeMqttMessage {
 		int pos = 0;
 		int msgLength = buffer.length;
 		msgList = new LinkedList<CabinetBox>();
-		
+
 		topic = decodeTopic(topicString);
-		
+
 		pos = decodeCabinetID(buffer, pos);
+		if (-1 == pos) {
+			return false;
+		}
+
 		pos = decodeCommand(buffer, pos);
-		
+		if (-1 == pos) {
+			return false;
+		}
+
 		while (pos < msgLength) {
 			int boxID;
 			String param;
 			int length;
+
+			/*******************************************************************
+			 * 
+			********************************************************************/
+			int paramID = NumberUtil.byte2ToUnsignedShort(buffer, pos);
+			if (paramID == timeTagValue) {
+				pos = decodeTime(buffer, pos);
+				continue;
+			}
+			/*******************************************************************/
+			if ((paramID < boxIdBaseValue) || paramID > (boxIdBaseValue + 12)) {
+				return false;
+			}
 
 			boxID = NumberUtil.byte2ToUnsignedShort(buffer, pos) - boxIdBaseValue;
 			pos += 2;
@@ -105,64 +127,89 @@ public class BaseExchangeMqttMessage {
 		return true;
 	}
 
+	public int decodeTime(byte[] buffer, int pos) {
+		int tag;
+		String param;
+		int length;
+
+		tag = NumberUtil.byte2ToUnsignedShort(buffer, pos);
+		if (tag != timeTagValue) {
+			return -1;
+		}
+		pos += 2;
+		length = NumberUtil.byte2ToUnsignedShort(buffer, pos);
+		pos += 2;
+
+		try {
+			param = new String(buffer, pos, length, "utf-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return -1;
+		}
+
+		pos += length;
+		time = param;
+		return pos;
+	}
+
 	public int decodeCabinetID(byte[] buffer, int pos) {
 		int tag;
 		String param;
 		int length;
-		
+
 		tag = NumberUtil.byte2ToUnsignedShort(buffer, pos);
-		if(tag != cainetTagValue) {
+		if (tag != cainetTagValue) {
 			return -1;
 		}
 		pos += 2;
 		length = NumberUtil.byte2ToUnsignedShort(buffer, pos);
-		pos += 2;			
-		
+		pos += 2;
+
 		try {
 			param = new String(buffer, pos, length, "utf-8");
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			return -1;
 		}
-		
+
 		pos += length;
 		cabinet = param;
 		return pos;
 	}
-	
+
 	public int decodeCommand(byte[] buffer, int pos) {
 		int tag;
 		String param;
 		int length;
-		
+
 		tag = NumberUtil.byte2ToUnsignedShort(buffer, pos);
-		if(tag != cmdTagValue) {
+		if (tag != cmdTagValue) {
 			return -1;
 		}
 		pos += 2;
 		length = NumberUtil.byte2ToUnsignedShort(buffer, pos);
-		pos += 2;			
-		
+		pos += 2;
+
 		try {
 			param = new String(buffer, pos, length, "utf-8");
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			return -1;
 		}
-		
+
 		pos += length;
 		cmd = param;
-		return pos;	
+		return pos;
 	}
-	
+
 	void setTopic(String direction, String deviceID) {
 		topic = new Topic(direction, deviceID);
 	}
-	
+
 	void addBox(int boxID, String param) {
 		msgList.add(new CabinetBox(boxID, param));
 	}
-	
+
 	public String getCabinet() {
 		return cabinet;
 	}

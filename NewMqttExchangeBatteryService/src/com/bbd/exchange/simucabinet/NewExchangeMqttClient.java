@@ -41,7 +41,10 @@ public class NewExchangeMqttClient {
 	
 	void sendSubscribe() {
 		try {
-			client.subscribe("a/"+clientId);
+			//client.subscribe("a/"+clientId);
+			client.subscribe("a/#");
+			client.subscribe("d/#");
+			client.subscribe("u/#");
 		} catch (MqttException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

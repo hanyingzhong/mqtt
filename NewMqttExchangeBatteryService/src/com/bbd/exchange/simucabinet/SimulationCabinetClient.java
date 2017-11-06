@@ -9,11 +9,16 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import com.bbd.exchange.mqtt.CabinetBoxContainer;
+import com.bbd.exchange.mqtt.DownRebootCabinetMessage;
+import com.bbd.exchange.mqtt.DownstreamCabinetMessage;
+import com.bbd.exchange.mqtt.InteractionCommand;
 import com.bbd.exchange.mqtt.UpstreamCabinetMessage;
+import com.bbd.exchange.util.MqttCfgUtil;
 
 public class SimulationCabinetClient extends JFrame {
 	// 得到显示器屏幕的宽高
@@ -21,7 +26,7 @@ public class SimulationCabinetClient extends JFrame {
 	static int height = Toolkit.getDefaultToolkit().getScreenSize().height;
 	// 定义窗体的宽高
 	static int windowsWedth = 600;
-	static int windowsHeight = 600;
+	static int windowsHeight = 650;
 	/**
 	 * 
 	 */
@@ -64,7 +69,7 @@ public class SimulationCabinetClient extends JFrame {
 		deviceIdText = new JTextField(25);
 		deviceIdText.setBounds(150, 100, 250, 30);
 		deviceIdText.setFont(font);
-		deviceIdText.setText("DEVICE-000011");
+		deviceIdText.setText("HDG-000011");
 		panel.add(deviceIdText);
 	}
 
@@ -76,7 +81,7 @@ public class SimulationCabinetClient extends JFrame {
 		cabinetIdText = new JTextField(25);
 		cabinetIdText.setBounds(150, 150, 250, 30);
 		cabinetIdText.setFont(font);
-		cabinetIdText.setText("HDG-00001238");
+		cabinetIdText.setText("EB000001");
 		panel.add(cabinetIdText);
 	}
 
@@ -110,8 +115,11 @@ public class SimulationCabinetClient extends JFrame {
 		panel.add(passwordLabel);
 		
 		boxStatusChoice = new Choice();
-		boxStatusChoice.add("opened");
 		boxStatusChoice.add("closed");
+		boxStatusChoice.add("opened");
+		boxStatusChoice.add("opensucceed");
+		boxStatusChoice.add("openfail");
+		boxStatusChoice.add("w4closeexpire");
 		boxStatusChoice.setBounds(150, 300, 250, 30);
 		boxStatusChoice.setSize(200, 120);
 		boxStatusChoice.setVisible(true);
@@ -120,7 +128,7 @@ public class SimulationCabinetClient extends JFrame {
 	}
 
 	private static void placeBatteryExistChoose(JPanel panel, Font font) {
-		JLabel passwordLabel = new JLabel("door status:");
+		JLabel passwordLabel = new JLabel("Battery status:");
 		passwordLabel.setBounds(10, 350, 100, 25);
 		panel.add(passwordLabel);
 		
@@ -134,9 +142,21 @@ public class SimulationCabinetClient extends JFrame {
 		panel.add(batteryExistChoice);
 	}
 	
+	static boolean checkIdValidity() {
+		if(Integer.parseInt(boxIdText.getText()) > 12) {
+			return false;
+		}
+		
+		if(Integer.parseInt(boxIdText.getText()) < 1) {
+			return false;
+		}
+		
+		return true;
+	}
+	
 	private static void placeAssoButtonType(JPanel panel, Font font) {
 		JButton assoButton = new JButton("Associate");
-		assoButton.setBounds(150, 450, 150, 25);
+		assoButton.setBounds(350, 450, 150, 25);
 		assoButton.setFont(font);
 		panel.add(assoButton);
 
@@ -146,9 +166,14 @@ public class SimulationCabinetClient extends JFrame {
 				UpstreamCabinetMessage msg = new UpstreamCabinetMessage("asso");
 				CabinetBoxContainer box = new CabinetBoxContainer("HDG-00001238");
 
+				if(false == checkIdValidity()) {
+					JOptionPane.showMessageDialog(null, "Box-ID:" + boxIdText.getText() + " must be in[1,12]");
+					return;
+				}
+				
 				msg.setDeviceID(deviceIdText.getText());
 				msg.setCabinetID(cabinetIdText.getText());
-				msg.setVerb("noti");
+				//msg.setVerb("noti");
 
 				box.setId(Integer.parseInt(boxIdText.getText()));
 				box.setBatteryExist(true);
@@ -170,8 +195,31 @@ public class SimulationCabinetClient extends JFrame {
 		});
 	}
 
-	private static void placeNotifyButtonType(JPanel panel, Font font) {
-		JButton notifyButton = new JButton("Notify");
+	private static void placeRebootButtonType(JPanel panel, Font font) {
+		JButton notifyButton = new JButton("Reboot");
+		notifyButton.setBounds(150, 450, 150, 25);
+		notifyButton.setFont(font);
+		panel.add(notifyButton);
+
+		notifyButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(false == checkIdValidity()) {
+					JOptionPane.showMessageDialog(null, "Box-ID:" + boxIdText.getText() + " must be in[1,12]");
+					return;
+				}
+
+				DownRebootCabinetMessage message = new DownRebootCabinetMessage(cabinetIdText.getText(), Integer.parseInt("0"));
+				message.checkAndSetDeviceID();
+				message.setDeviceID(deviceIdText.getText());
+
+				message.publish(message);	
+			}
+		});
+	}
+	
+	private static void placeOpenButtonType(JPanel panel, Font font) {
+		JButton notifyButton = new JButton("Open");
 		notifyButton.setBounds(150, 500, 150, 25);
 		notifyButton.setFont(font);
 		panel.add(notifyButton);
@@ -179,6 +227,59 @@ public class SimulationCabinetClient extends JFrame {
 		notifyButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				if(false == checkIdValidity()) {
+					JOptionPane.showMessageDialog(null, "Box-ID:" + boxIdText.getText() + " must be in[1,12]");
+					return;
+				}
+
+				DownstreamCabinetMessage message = new DownstreamCabinetMessage(cabinetIdText.getText(), InteractionCommand.DOWN_MODIFY,
+						InteractionCommand.DOWN_SUB_OPEN, Integer.parseInt(boxIdText.getText()));
+				message.checkAndSetDeviceID();
+				message.setDeviceID(deviceIdText.getText());
+
+				message.publish(message);	
+			}
+		});
+	}
+
+	private static void placeSyncButtonType(JPanel panel, Font font) {
+		JButton notifyButton = new JButton("Sync");
+		notifyButton.setBounds(150, 550, 150, 25);
+		notifyButton.setFont(font);
+		panel.add(notifyButton);
+
+		notifyButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(false == checkIdValidity()) {
+					JOptionPane.showMessageDialog(null, "Box-ID:" + boxIdText.getText() + " must be in[1,12]");
+					return;
+				}
+
+				DownstreamCabinetMessage message = new DownstreamCabinetMessage(cabinetIdText.getText(), InteractionCommand.DOWN_MODIFY,
+						InteractionCommand.DOWN_SUB_SYNCBOXSTATUS, Integer.parseInt(boxIdText.getText()));
+				message.checkAndSetDeviceID();
+				message.setDeviceID(deviceIdText.getText());
+
+				message.publish(message);	
+			}
+		});
+	}
+	
+	private static void placeNotifyButtonType(JPanel panel, Font font) {
+		JButton notifyButton = new JButton("Notify");
+		notifyButton.setBounds(350, 500, 150, 25);
+		notifyButton.setFont(font);
+		panel.add(notifyButton);
+
+		notifyButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {	
+				if(false == checkIdValidity()) {
+					JOptionPane.showMessageDialog(null, "Box-ID:" + boxIdText.getText() + " must be in[1,12]");
+					return;
+				}
+				
 				UpstreamCabinetMessage msg = new UpstreamCabinetMessage("asso");
 				CabinetBoxContainer box = new CabinetBoxContainer("HDG-00001238");
 
@@ -187,6 +288,7 @@ public class SimulationCabinetClient extends JFrame {
 				msg.setVerb("noti");
 
 				box.setDoorOpened(boxStatusChoice.getSelectedItem().equals("opened") ? true : false);
+				box.setResponseCode(boxStatusChoice.getSelectedIndex());
 				box.setId(Integer.parseInt(boxIdText.getText()));
 				box.setBatteryExist(batteryExistChoice.getSelectedItem().equals("exist") ? true : false);
 				box.setBatteryID(batteryIdText.getText());
@@ -199,14 +301,13 @@ public class SimulationCabinetClient extends JFrame {
 
 				byte[] buffer = msg.encode();
 				if (mqttClient.client.isConnected()) {
-					mqttClient.sendPublish(msg.encodeTopic(), buffer);
+					String topic = "u/"+deviceIdText.getText();
+					mqttClient.sendPublish(topic, buffer);
 				}
-
-				// JOptionPane.showMessageDialog(null, "弹出对话框" + cabinetIdText.getText());
 			}
 		});
 	}
-
+	
 	private static void placeComponents(JPanel panel) {
 
 		Font font = new Font(null, Font.TRUETYPE_FONT, 24);
@@ -223,16 +324,25 @@ public class SimulationCabinetClient extends JFrame {
 
 		placeAssoButtonType(panel, font);
 		placeNotifyButtonType(panel, font);
+		placeOpenButtonType(panel, font);
+		placeSyncButtonType(panel, font);
+		placeRebootButtonType(panel, font);
+		
 		// create exchange button
 		placeBoxStatusChoose(panel, font);
 		placeBatteryExistChoose(panel, font);
 	}
 
 	public static void main(String[] args) {
+		MqttCfgUtil.loadProps();
 		SimulationCabinetClient client = new SimulationCabinetClient();
-		mqttClient = new NewExchangeMqttClient("tcp://121.40.109.91", "parry", "parry123", "DEV-3245662ER",
+/*		mqttClient = new NewExchangeMqttClient("tcp://121.40.109.91", "parry", "parry123", "DEV-3245662ER",
+				new SimulationCabinetMqttMsgCallback());
+*/
+		mqttClient = new NewExchangeMqttClient(MqttCfgUtil.getServerUri(), "parry", "parry123", "DEV-3245662ER",
 				new SimulationCabinetMqttMsgCallback());
 
 		mqttClient.connect();
+		//mqttClient.sendPublish("a/ddddddddddd", "testssssssssssss");
 	}
 }

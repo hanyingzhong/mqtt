@@ -50,5 +50,6 @@ public class CabinetLoadInterface {
 	static void loadFromMemory() {
 		createCabinet("HDG-00001238", 12);
 		createCabinet("HDG-SZ000001", 12);
+		createCabinet("EB000001", 12);
 	}
 }

@@ -12,6 +12,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import com.bbd.exchange.mobile.ClientRequestMessage;
+import com.bbd.exchange.util.MqttCfgUtil;
 
 public class SimulationExchangeClient extends JFrame {
 	// 得到显示器屏幕的宽高
@@ -128,8 +129,10 @@ public class SimulationExchangeClient extends JFrame {
 	}
 
 	public static void main(String[] args) {
+		MqttCfgUtil.loadProps();
 		SimulationExchangeClient client = new SimulationExchangeClient();
-		mqttClient = new ExchangeMqttClient("tcp://121.40.109.91", "parry","parry123", "DEV-1545662ER");
+		//mqttClient = new ExchangeMqttClient("tcp://121.40.109.91", "parry","parry123", "DEV-1545662ER");
+		mqttClient = new ExchangeMqttClient(MqttCfgUtil.getServerUri(), "parry","parry123", "DEV-1545662ER");
 		
 		mqttClient.connect();
 	}

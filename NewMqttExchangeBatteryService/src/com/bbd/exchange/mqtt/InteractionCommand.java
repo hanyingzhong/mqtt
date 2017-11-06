@@ -12,8 +12,19 @@ public class InteractionCommand {
 	public static final String DOWN_MODIFY = "5";
 	public static final String DOWN_PING = "6";
 	public static final String UP_PONG = "7";
-
+	public static final String UP_ASSOCIATEACK = "8";
+	public static final String DOWN_REBOOT = "9";
+	
 	public static final String DOWN_SUB_OPEN = "1";
+	public static final String DOWN_SUB_SYNCBOXSTATUS = "2";
+	public static final String DOWN_SUB_SYNCTIME = "3";
+	public static final String DOWN_SUB_ACK = "4";
+	
+	public static final int RESCODE_CLOSED = 0;
+	public static final int RESCODE_OPENED = 1;
+	public static final int RESCODE_OPENSUCC = 2;
+	public static final int RESCODE_OPENFAIL = 3;
+	public static final int RESCODE_W4CLOSEDEXPIRE = 4;
 
 	static Map<String, String> cmdMap = new HashMap<String, String>();
 

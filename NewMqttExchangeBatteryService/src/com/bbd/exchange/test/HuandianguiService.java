@@ -17,13 +17,16 @@ import com.bbd.exchange.mqtt.DownstreamCabinetMessage;
 import com.bbd.exchange.mqtt.HandlingOriginalMqttMessage;
 import com.bbd.exchange.mqtt.MqttMessageCallback;
 import com.bbd.exchange.mqtt.UpstreamCabinetMessage;
+import com.bbd.exchange.util.MqttCfgUtil;
 
 public class HuandianguiService {
 	private static final MqttDefaultFilePersistence DATA_STORE = new MqttDefaultFilePersistence("/tmp");
 	static MqttConnectOptions options;
 	static MqttClient client;
 
-	static String server = "tcp://121.40.109.91";
+	//static String server = "tcp://121.40.109.91";
+	//static String server = "tcp://localhost";
+	static String server = MqttCfgUtil.getServerUri();
 	static String username = "parry";
 	static char[] password = "parry123".toCharArray();
 	static String clientId = "Device-1545662222222";
@@ -63,8 +66,10 @@ public class HuandianguiService {
 	static void sendSubsrcibe() {
 		if ((client != null) && (client.isConnected())) {
 			try {
-				client.subscribe("u/DEVICE-000011", 0);
-				client.subscribe("d/DEVICE-000011", 0);
+				client.subscribe("u/#", 0);
+				//client.subscribe("u/HDG-000011", 0);
+				//client.subscribe("u/DEVICE-000011", 0);
+				//client.subscribe("d/DEVICE-000011", 0);
 				client.subscribe("a/#", 0);
 				// client.subscribe("ActiveMQ/Advisory/Connection");
 				client.subscribe("b/DEVICE-000011/will");
@@ -104,16 +109,19 @@ public class HuandianguiService {
 		box.setBatteryExist(true);
 		box.setBatteryID("6AAA121104000111");
 		box.setCapacity("90");
+		box.setDoorOpened(false);
 		msg.addBox(box);
 
 		box2.setId(2);
 		box2.setBatteryExist(true);
 		box2.setBatteryID("4AAA121104000111");
 		box2.setCapacity("90");
+		box2.setDoorOpened(false);
 		msg.addBox(box2);
 
 		box3.setId(3);
 		box3.setBatteryExist(false);
+		box3.setDoorOpened(false);
 		msg.addBox(box3);
 
 		String topic = msg.encodeTopic();
@@ -191,6 +199,7 @@ public class HuandianguiService {
 
 	@SuppressWarnings("static-access")
 	public static void main(String[] args) {
+		MqttCfgUtil.loadProps();
 		CabinetLoadInterface.getInstance().loadCabinetTable(3);
 		
 		try {

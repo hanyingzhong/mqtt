@@ -6,13 +6,15 @@ import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 import com.bbd.exchange.control.DeviceMgrContainer;
 import com.bbd.exchange.mobile.MobileMqttClientSimnulation;
 import com.bbd.exchange.simuclient.ExchangeMqttClient;
+import com.bbd.exchange.util.MqttCfgUtil;
 import com.bbd.exchange.util.NumberUtil;
 
 public class DownstreamCabinetMessage implements ExchangeMqttMessage {
 	static MobileMqttClientSimnulation mqttClient = MobileMqttClientSimnulation.getInstance();
 
 	static {
-		ExchangeMqttClient exchangeMqttClient = new ExchangeMqttClient("tcp://121.40.109.91", "parry","parry123", "SIMU-DDER");
+		//ExchangeMqttClient exchangeMqttClient = new ExchangeMqttClient("tcp://121.40.109.91", "parry","parry123", "SIMU-DDER");
+		ExchangeMqttClient exchangeMqttClient = new ExchangeMqttClient(MqttCfgUtil.getServerUri(), "parry","parry123", "SIMU-DDER");
 		mqttClient.setMqttClient(exchangeMqttClient);
 	}
 	
@@ -35,6 +37,21 @@ public class DownstreamCabinetMessage implements ExchangeMqttMessage {
 	public DownstreamCabinetMessage() {
 	}
 
+	public boolean publish(String topic, String  message) {
+		if(false == mqttClient.getMqttClient().getClient().isConnected()) {
+			mqttClient.connect();
+		}
+		
+		try {
+			mqttClient.getMqttClient().getClient().publish(topic, message.getBytes(), 0, false);
+		} catch (MqttPersistenceException e) {
+			e.printStackTrace();
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+		return true;	
+	}
+	
 	public boolean publish(DownstreamCabinetMessage message) {
 		byte[] pubilshMsg = message.encode();
 		
@@ -61,7 +78,7 @@ public class DownstreamCabinetMessage implements ExchangeMqttMessage {
 
 		return true;
 	}
-
+	
 	@Override
 	public void handling() {
 		showMessage();
@@ -119,6 +136,23 @@ public class DownstreamCabinetMessage implements ExchangeMqttMessage {
 	public int encodeCommand(byte[] buffer, int pos) {
 		int posCurr = pos;
 		int id = 0x0501;
+		//String command = InteractionCommand.getCommandValue(verb);
+		String command = verb;
+
+		bytesArrayCopy(NumberUtil.unsignedShortToByte2(id), 0, buffer, posCurr, 2);
+		posCurr += 2;
+
+		bytesArrayCopy(NumberUtil.unsignedShortToByte2(command.length()), 0, buffer, posCurr, 2);
+		posCurr += 2;
+		bytesArrayCopy(command.getBytes(), 0, buffer, posCurr, command.length());
+		posCurr += command.length();
+
+		return posCurr;
+	}
+
+	public int encodeTime(byte[] buffer, int pos) {
+		int posCurr = pos;
+		int id = 0x9001;
 		//String command = InteractionCommand.getCommandValue(verb);
 		String command = verb;
 

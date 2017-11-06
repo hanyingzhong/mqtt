@@ -18,8 +18,8 @@ public class SimulationCabinetMqttMsgCallback implements MqttCallback{
 
 	@Override
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
-		//System.out.println(topic + "-->" + NumberUtil.bytesToHexString(message.getPayload()));
-		System.out.println(topic + "-->" + message.toString());
+		System.out.println(topic + "-->" + NumberUtil.bytesToHexString(message.getPayload()));
+		//System.out.println(topic + "-->" + message.toString());
 	}
 
 }

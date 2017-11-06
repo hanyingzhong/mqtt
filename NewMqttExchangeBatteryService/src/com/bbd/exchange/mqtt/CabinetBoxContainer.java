@@ -1,8 +1,13 @@
 package com.bbd.exchange.mqtt;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bbd.exchange.util.NumberUtil;
 
 public class CabinetBoxContainer {
+	private static final Logger logger = LoggerFactory.getLogger(CabinetBoxContainer.class);
+
 	String deviceID;
 	String cabinetID;
 	String command;
@@ -12,6 +17,7 @@ public class CabinetBoxContainer {
 	boolean batteryExist;
 	String batteryID;
 	String capacity;
+	int responseCode;
 
 	public CabinetBoxContainer(String cabinetID) {
 		this.cabinetID = cabinetID;
@@ -37,23 +43,39 @@ public class CabinetBoxContainer {
 		bytesArrayCopy(boxInfo.getBytes(), 0, msg, pos, boxInfo.length());
 		pos += boxInfo.length();
 
-		System.out.println(NumberUtil.bytesToHexString(msg));
+		//System.out.println(NumberUtil.bytesToHexString(msg));
 
 		byte[] retMsg = new byte[pos];
 		bytesArrayCopy(msg, 0, retMsg, 0, pos);
 		return retMsg;
 	}
 
+	void decideDoorStatus() {
+		if ((responseCode == InteractionCommand.RESCODE_OPENED)
+				|| (responseCode == InteractionCommand.RESCODE_OPENSUCC)) {
+			doorOpened = true;
+		} else {
+			doorOpened = false;
+		}
+	}
+
 	boolean decodeUpstream(String content) {
 		String[] sub = content.split(",");
 		int paramNum = sub.length;
 
-		if (sub.length < 2) {
+		if (sub.length < 1) {
 			return false;
 		}
 
 		if (sub[0] != null) {
-			doorOpened = sub[0].equals("1") ? true : false;
+			responseCode = Integer.parseInt(sub[0]);
+			// logger.info("response code is {}", responseCode);
+		}
+
+		decideDoorStatus();
+
+		if (sub.length == 1) {
+			return true;
 		}
 
 		if (sub[1] != null) {
@@ -65,6 +87,10 @@ public class CabinetBoxContainer {
 		}
 
 		batteryID = sub[2];
+		if (sub.length == 3) {
+			return true;
+		}
+
 		capacity = sub[3];
 		return true;
 	}
@@ -72,7 +98,8 @@ public class CabinetBoxContainer {
 	public String encodeBoxInfo() {
 		StringBuilder stringBuilder = new StringBuilder();
 
-		stringBuilder.append(doorOpened ? "1" : "0");
+		//stringBuilder.append(doorOpened ? "1" : "0");
+		stringBuilder.append(responseCode);
 		stringBuilder.append(",");
 		/*
 		 * encode battery status...exist..id..capacity
@@ -116,7 +143,7 @@ public class CabinetBoxContainer {
 	public boolean isDoorClosed() {
 		return !doorOpened;
 	}
-	
+
 	public void setDoorOpened(boolean doorOpened) {
 		this.doorOpened = doorOpened;
 	}
@@ -124,11 +151,11 @@ public class CabinetBoxContainer {
 	public boolean isBatteryExist() {
 		return batteryExist;
 	}
-	
+
 	public boolean isBatteryNotExist() {
 		return !batteryExist;
 	}
-	
+
 	public void setBatteryExist(boolean batteryExist) {
 		this.batteryExist = batteryExist;
 	}
@@ -163,6 +190,14 @@ public class CabinetBoxContainer {
 
 	public void setCapacity(String capacity) {
 		this.capacity = capacity;
+	}
+
+	public int getResponseCode() {
+		return responseCode;
+	}
+
+	public void setResponseCode(int responseCode) {
+		this.responseCode = responseCode;
 	}
 
 }

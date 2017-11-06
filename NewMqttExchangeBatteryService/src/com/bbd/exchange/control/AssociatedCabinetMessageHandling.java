@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bbd.exchange.mqtt.CabinetBoxContainer;
+import com.bbd.exchange.mqtt.DownstreamCabinetMessage;
+import com.bbd.exchange.mqtt.InteractionCommand;
 import com.bbd.exchange.mqtt.UpstreamCabinetMessage;
 import com.bbd.exchange.util.PropertyUtil;
 import com.bbd.exchange.util.RedisUtils;
@@ -26,10 +28,19 @@ public class AssociatedCabinetMessageHandling implements CabinetMessageHandling 
 		RedisUtils.returnResource(jedis);
 	}
 
+	void sendAssociateAck(String deviceID, String cabinetID) {
+		DownstreamCabinetMessage dmsg = new DownstreamCabinetMessage(cabinetID, InteractionCommand.UP_ASSOCIATEACK, InteractionCommand.DOWN_SUB_ACK, 0);
+		dmsg.setDeviceID(deviceID);
+		dmsg.publish(dmsg);
+		logger.info("send associate ACK to {}/{}", deviceID, cabinetID);
+	}
+	
 	public void handling(UpstreamCabinetMessage msg) {
 		DeviceMgrContainer.getInstance().insertCabinet(msg.getDeviceID(), msg.getCabinetID());
 		CabinetControlObject cabinetObj = CabinetMgrContainer.getInstance().getCabinetControlObject(msg.getCabinetID());
 
+		sendAssociateAck(msg.getDeviceID(), msg.getCabinetID());
+		
 		if (null == cabinetObj) {
 			logger.error("{} is not configured.", msg.getCabinetID());
 			return;
