@@ -21,13 +21,6 @@ public class AssociatedCabinetMessageHandling implements CabinetMessageHandling 
 		return AssociatedCabinetMessageHandling.INSTANCE;
 	}
 
-	void store2Redis(CabinetBoxObject boxObj) {
-		Jedis jedis = RedisUtils.getJedis();
-		jedis.select(2);
-		jedis.hmset(boxObj.getBoxID(), boxObj.getMap());
-		RedisUtils.returnResource(jedis);
-	}
-
 	void sendAssociateAck(String deviceID, String cabinetID) {
 		DownstreamCabinetMessage dmsg = new DownstreamCabinetMessage(cabinetID, InteractionCommand.UP_ASSOCIATEACK, InteractionCommand.DOWN_SUB_ACK, 0);
 		dmsg.setDeviceID(deviceID);
@@ -45,7 +38,9 @@ public class AssociatedCabinetMessageHandling implements CabinetMessageHandling 
 			logger.error("{} is not configured.", msg.getCabinetID());
 			return;
 		}
-
+		cabinetObj.setState(CabinetControlObject.ONLINE);
+		cabinetObj.setDeviceId(msg.getDeviceID());
+		
 		/**
 		 * update cabinet-box status, including box status/battery status etc...
 		 * ele.getId() start from 1....
@@ -66,7 +61,7 @@ public class AssociatedCabinetMessageHandling implements CabinetMessageHandling 
 			}
 
 			logger.info("{}", boxObj);
-			store2Redis(boxObj);
+			boxObj.store2Redis();
 		}
 	}
 }

@@ -18,6 +18,7 @@ import com.bbd.exchange.mqtt.DownRebootCabinetMessage;
 import com.bbd.exchange.mqtt.DownstreamCabinetMessage;
 import com.bbd.exchange.mqtt.InteractionCommand;
 import com.bbd.exchange.mqtt.UpstreamCabinetMessage;
+import com.bbd.exchange.mqtt.UpstreamDisassociateMessage;
 import com.bbd.exchange.util.MqttCfgUtil;
 
 public class SimulationCabinetClient extends JFrame {
@@ -195,6 +196,37 @@ public class SimulationCabinetClient extends JFrame {
 		});
 	}
 
+	private static void placeDisassoButtonType(JPanel panel, Font font) {
+		JButton assoButton = new JButton("Disassociate");
+		assoButton.setBounds(350, 500, 150, 25);
+		assoButton.setFont(font);
+		panel.add(assoButton);
+
+		assoButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				UpstreamDisassociateMessage msg = new UpstreamDisassociateMessage("disa");
+
+				if(false == checkIdValidity()) {
+					JOptionPane.showMessageDialog(null, "Box-ID:" + boxIdText.getText() + " must be in[1,12]");
+					return;
+				}
+				
+				msg.setDeviceID(deviceIdText.getText());
+				msg.setCabinetID(cabinetIdText.getText());
+
+				if (false == mqttClient.client.isConnected()) {
+					mqttClient.connect();
+				}
+
+				byte[] buffer = msg.encode();
+				if (mqttClient.client.isConnected()) {
+					mqttClient.sendPublish(msg.encodeTopic(), buffer);
+				}
+			}
+		});
+	}
+	
 	private static void placeRebootButtonType(JPanel panel, Font font) {
 		JButton notifyButton = new JButton("Reboot");
 		notifyButton.setBounds(150, 450, 150, 25);
@@ -268,7 +300,7 @@ public class SimulationCabinetClient extends JFrame {
 	
 	private static void placeNotifyButtonType(JPanel panel, Font font) {
 		JButton notifyButton = new JButton("Notify");
-		notifyButton.setBounds(350, 500, 150, 25);
+		notifyButton.setBounds(350, 550, 150, 25);
 		notifyButton.setFont(font);
 		panel.add(notifyButton);
 
@@ -322,8 +354,12 @@ public class SimulationCabinetClient extends JFrame {
 		placeBatteryID(panel, font);
 		placeBoxID(panel, font);
 
+		/*generate upstream message*/
 		placeAssoButtonType(panel, font);
+		placeDisassoButtonType(panel, font);
 		placeNotifyButtonType(panel, font);
+		
+		/*generate downstream message*/
 		placeOpenButtonType(panel, font);
 		placeSyncButtonType(panel, font);
 		placeRebootButtonType(panel, font);

@@ -41,7 +41,7 @@ public class CabinetBoxObject implements ExchangeControlObject {
 	public static final String BATERYTYPE_60 = "6";
 	public static final String BATERYTYPE_72 = "7";
 
-	public static final int redisStoreAera = 2;
+	public static final int redisStoreAera = 3;
 	
 	String cabinetID;
 	int ID;

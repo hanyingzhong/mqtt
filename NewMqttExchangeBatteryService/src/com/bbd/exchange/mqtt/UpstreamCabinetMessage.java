@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bbd.exchange.control.AssociatedCabinetMessageHandling;
+import com.bbd.exchange.control.DisassociateCabinetMessageHandling;
 import com.bbd.exchange.control.NotifyCabinetMessageHandling;
 import com.bbd.exchange.util.NumberUtil;
 
@@ -30,13 +31,19 @@ public class UpstreamCabinetMessage implements ExchangeMqttMessage {
 	@Override
 	public void handling() {
 		showMessage();
+
+		if (verb.equals(InteractionCommand.UP_NOTIFY)) {
+			NotifyCabinetMessageHandling.getInstance().handling(this);
+			return;
+		}
+		
 		if (verb.equals(InteractionCommand.UP_ASSOCIATE)) {
 			AssociatedCabinetMessageHandling.getInstance().handling(this);
 			return;
 		}
-
-		if (verb.equals(InteractionCommand.UP_NOTIFY)) {
-			NotifyCabinetMessageHandling.getInstance().handling(this);
+		
+		if (verb.equals(InteractionCommand.UP_DISASSOCIATE)) {
+			DisassociateCabinetMessageHandling.getInstance().handling(this);
 			return;
 		}
 	}

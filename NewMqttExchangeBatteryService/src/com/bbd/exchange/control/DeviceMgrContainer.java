@@ -4,6 +4,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.bbd.exchange.util.RedisUtils;
+
+import redis.clients.jedis.Jedis;
+
 /*
  * A IoT device may associate at least one cabinet. two or more cabinets also exist.
  * 
@@ -19,9 +23,36 @@ public class DeviceMgrContainer implements ContainerManagment {
 	static ConcurrentHashMap<String, String> cabinetMgr = new ConcurrentHashMap<String, String>();
 
 	private static final DeviceMgrContainer INSTANCE = new DeviceMgrContainer();
+	public static final int redisStoreAera = 1;
 
 	public static final DeviceMgrContainer getInstance() {
 		return DeviceMgrContainer.INSTANCE;
+	}
+
+	public void redisStoreDeviceSet(String deviceID, String cabinetID) {
+		Jedis jedis = RedisUtils.getJedis();
+		jedis.select(DeviceMgrContainer.redisStoreAera);
+		jedis.sadd(deviceID, cabinetID);
+		RedisUtils.returnResource(jedis);
+	}
+
+	public void redisRemoveDeviceSet(String deviceID, String cabinetID) {
+		Jedis jedis = RedisUtils.getJedis();
+		jedis.select(DeviceMgrContainer.redisStoreAera);
+		jedis.srem(deviceID, cabinetID);
+		RedisUtils.returnResource(jedis);
+	}
+
+	public Set<String> redisSMEMBERS(String deviceID) {
+		Jedis jedis = RedisUtils.getJedis();
+		jedis.select(DeviceMgrContainer.redisStoreAera);
+		Set<String> smembers = jedis.smembers(deviceID);
+		RedisUtils.returnResource(jedis);
+		
+		for (String str : smembers) {
+		      System.out.println(str);
+		}
+		return smembers;
 	}
 
 	@Override
@@ -36,6 +67,7 @@ public class DeviceMgrContainer implements ContainerManagment {
 		set.add(cabinetID);
 		deviceMgr.put(deviceID, set);
 		cabinetMgr.put(cabinetID, deviceID);
+		redisStoreDeviceSet(deviceID, cabinetID);
 		return true;
 	}
 
@@ -49,6 +81,12 @@ public class DeviceMgrContainer implements ContainerManagment {
 
 		set.remove(cabinetID);
 		cabinetMgr.remove(cabinetID);
+
+		/* if there is no cabinet in deviceMgr, deviceMgr remove the IoT-device */
+		if (set.isEmpty()) {
+			deviceMgr.remove(deviceID);
+		}
+		redisRemoveDeviceSet(deviceID, cabinetID);
 		return true;
 	}
 
