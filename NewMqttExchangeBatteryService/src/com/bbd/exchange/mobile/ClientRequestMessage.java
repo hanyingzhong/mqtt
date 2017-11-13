@@ -4,11 +4,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class ClientRequestMessage {
+	String topic;
 	String requestType;
 	String clientID;
 	String cabinetID;
 	String batteryType;
 
+	public void setTopic(String topic) {
+		this.topic = topic;
+	}
+
+	public ClientRequestMessage(){
+		
+	}
+	
 	public String getTopic() {
 		return "a/" + clientID;
 	}
@@ -90,12 +99,27 @@ public class ClientRequestMessage {
 		return cmdJSONObject.toString();
 	}
 	
+	public void setRequestType(String requestType) {
+		this.requestType = requestType;
+	}
+
+	public void setClientID(String clientID) {
+		this.clientID = clientID;
+	}
+
+	public void setCabinetID(String cabinetID) {
+		this.cabinetID = cabinetID;
+	}
+
+	public void setBatteryType(String batteryType) {
+		this.batteryType = batteryType;
+	}
+
 	public boolean json2Object(String json) {
 		JSONObject cmdJSONObject;
 		try {
 			cmdJSONObject = new JSONObject(json);
 		} catch (JSONException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 			return false;
 		}

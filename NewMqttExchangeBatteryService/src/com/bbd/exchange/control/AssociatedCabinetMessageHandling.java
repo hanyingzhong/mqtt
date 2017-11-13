@@ -8,9 +8,6 @@ import com.bbd.exchange.mqtt.DownstreamCabinetMessage;
 import com.bbd.exchange.mqtt.InteractionCommand;
 import com.bbd.exchange.mqtt.UpstreamCabinetMessage;
 import com.bbd.exchange.util.PropertyUtil;
-import com.bbd.exchange.util.RedisUtils;
-
-import redis.clients.jedis.Jedis;
 
 public class AssociatedCabinetMessageHandling implements CabinetMessageHandling {
 	private static final Logger logger = LoggerFactory.getLogger(PropertyUtil.class);

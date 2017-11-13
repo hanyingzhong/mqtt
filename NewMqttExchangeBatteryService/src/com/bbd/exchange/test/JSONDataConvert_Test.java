@@ -58,5 +58,8 @@ public class JSONDataConvert_Test {
         JSONObject jsonObject = new JSONObject(); 
         jsonObject.put("request", message);
         System.out.println(jsonObject.toString());
+        
+        JSONObject jsonObject2 = JSONObject.fromObject(jsonObject.get("request")); 
+        ClientRequestMessage message2 = (ClientRequestMessage) JSONObject.toBean(jsonObject2, ClientRequestMessage.class);
     }  
 }

@@ -17,6 +17,7 @@ import com.bbd.exchange.mqtt.DownstreamCabinetMessage;
 import com.bbd.exchange.mqtt.HandlingOriginalMqttMessage;
 import com.bbd.exchange.mqtt.MqttMessageCallback;
 import com.bbd.exchange.mqtt.UpstreamCabinetMessage;
+import com.bbd.exchange.service.ServiceMessageHandling;
 import com.bbd.exchange.util.MqttCfgUtil;
 
 public class HuandianguiService {
@@ -73,6 +74,8 @@ public class HuandianguiService {
 				client.subscribe("a/#", 0);
 				// client.subscribe("ActiveMQ/Advisory/Connection");
 				client.subscribe("b/DEVICE-000011/will");
+				client.subscribe("timer/#", 0);
+				client.subscribe("exchange/#", 0);
 			} catch (MqttException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -199,8 +202,8 @@ public class HuandianguiService {
 
 	@SuppressWarnings("static-access")
 	public static void main(String[] args) {
-		MqttCfgUtil.loadProps();
-		CabinetLoadInterface.getInstance().loadCabinetTable(3);
+		//MqttCfgUtil.loadProps();
+		CabinetLoadInterface.getInstance().loadCabinetTable(1);
 		
 		try {
 			init();
@@ -212,6 +215,7 @@ public class HuandianguiService {
 		System.out.println("HelloWorld.");
 		new HandlingOriginalMqttMessage().start();
 		new MobileMqttMessageHandling().start();
+		new ServiceMessageHandling().start();
 
 		while (true) {
 			try {

@@ -12,6 +12,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import com.bbd.exchange.mobile.ClientRequestMessage;
+import com.bbd.exchange.service.ExchangeRequestMessage;
+import com.bbd.exchange.service.ServiceMqttClient;
 import com.bbd.exchange.util.MqttCfgUtil;
 
 public class SimulationExchangeClient extends JFrame {
@@ -30,18 +32,17 @@ public class SimulationExchangeClient extends JFrame {
 	static JTextField requestTypeText;
 	/*
 	 * store the request user info.......
-	 * */
+	 */
 	static JTextField clientIdText;
 	/*
 	 * store the cabinetID info.......
-	 * */
+	 */
 	static JTextField cabinetIdText;
 	/*
 	 * store the batteryType info.......
-	 * */
+	 */
 	static JTextField batteryTypeText;
-	
-	
+
 	public SimulationExchangeClient() {
 		this.setSize(350, 200);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -63,7 +64,7 @@ public class SimulationExchangeClient extends JFrame {
 		clientIdText.setBounds(150, 100, 250, 30);
 		clientIdText.setFont(font);
 		clientIdText.setText("18616996973-6973");
-		panel.add(clientIdText);	
+		panel.add(clientIdText);
 	}
 
 	private static void placeCabinetID(JPanel panel, Font font) {
@@ -75,9 +76,9 @@ public class SimulationExchangeClient extends JFrame {
 		cabinetIdText.setBounds(150, 150, 250, 30);
 		cabinetIdText.setFont(font);
 		cabinetIdText.setText("HDG-00001238");
-		panel.add(cabinetIdText);	
+		panel.add(cabinetIdText);
 	}
-	
+
 	private static void placeBatteryType(JPanel panel, Font font) {
 		JLabel passwordLabel = new JLabel("Battery Type:");
 		passwordLabel.setBounds(10, 200, 150, 25);
@@ -87,9 +88,35 @@ public class SimulationExchangeClient extends JFrame {
 		batteryTypeText.setBounds(150, 200, 250, 30);
 		batteryTypeText.setFont(font);
 		batteryTypeText.setText("60V20");
-		panel.add(batteryTypeText);	
+		panel.add(batteryTypeText);
 	}
-	
+
+	private static void placeNormalExchangeButtonType(JPanel panel, Font font) {
+		JButton notifyButton = new JButton("NewExchange");
+		notifyButton.setBounds(150, 350, 150, 25);
+		notifyButton.setFont(font);
+		panel.add(notifyButton);
+
+		notifyButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+				ExchangeRequestMessage message = new ExchangeRequestMessage();
+				
+				message.setRequestID("18616996973");
+				message.setBatteryType("60V20A");
+				message.setCabinetID("HDG-00001238");
+				message.setEmptyBoxID("1");
+				message.setFullEnergyBoxID("9");
+				message.setNotifyTopic(mqttClient.getSubscribeTopic());
+				
+				String exchange = ExchangeRequestMessage.encode2Json(message);
+				
+				ServiceMqttClient.getInstance().publish(message.destinationTopic(), exchange);
+			}
+		});
+	}
+
 	private static void placeComponents(JPanel panel) {
 
 		Font font = new Font(null, Font.TRUETYPE_FONT, 24);
@@ -102,7 +129,7 @@ public class SimulationExchangeClient extends JFrame {
 		placeClientID(panel, font);
 		placeCabinetID(panel, font);
 		placeBatteryType(panel, font);
-		
+
 		// create exchange button
 		JButton loginButton = new JButton("Exchange");
 		loginButton.setBounds(150, 300, 80, 25);
@@ -111,29 +138,33 @@ public class SimulationExchangeClient extends JFrame {
 		loginButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				ClientRequestMessage message = new ClientRequestMessage("exchange", clientIdText.getText(), cabinetIdText.getText(), batteryTypeText.getText());
+				ClientRequestMessage message = new ClientRequestMessage("exchange", clientIdText.getText(),
+						cabinetIdText.getText(), batteryTypeText.getText());
 
 				System.out.println(message.toString());
-				
-				if(false == mqttClient.client.isConnected()) {
-					mqttClient.connect();				
-				}			
-				
-				if(mqttClient.client.isConnected()) {
-					mqttClient.sendPublish(message.getTopic(), message.toString());				
+
+				if (false == mqttClient.client.isConnected()) {
+					mqttClient.connect();
 				}
 
-				//JOptionPane.showMessageDialog(null, "弹出对话框" + cabinetIdText.getText());
+				if (mqttClient.client.isConnected()) {
+					mqttClient.sendPublish(message.getTopic(), message.toString());
+				}
+
+				// JOptionPane.showMessageDialog(null, "弹出对话框" + cabinetIdText.getText());
 			}
 		});
+		
+		placeNormalExchangeButtonType(panel, font);
 	}
 
 	public static void main(String[] args) {
 		MqttCfgUtil.loadProps();
 		SimulationExchangeClient client = new SimulationExchangeClient();
-		//mqttClient = new ExchangeMqttClient("tcp://121.40.109.91", "parry","parry123", "DEV-1545662ER");
-		mqttClient = new ExchangeMqttClient(MqttCfgUtil.getServerUri(), "parry","parry123", "DEV-1545662ER");
-		
+		// mqttClient = new ExchangeMqttClient("tcp://121.40.109.91",
+		// "parry","parry123", "DEV-1545662ER");
+		mqttClient = new ExchangeMqttClient(MqttCfgUtil.getServerUri(), "parry", "parry123", "DEV-1545662ER");
+
 		mqttClient.connect();
 	}
 }

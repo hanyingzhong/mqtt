@@ -45,6 +45,7 @@ public class NewExchangeMqttClient {
 			client.subscribe("a/#");
 			client.subscribe("d/#");
 			client.subscribe("u/#");
+			client.subscribe("timer/#");
 		} catch (MqttException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

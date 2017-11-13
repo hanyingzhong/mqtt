@@ -3,11 +3,12 @@ package com.bbd.exchange.control;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bbd.exchange.dbintf.ExchangeRequestMgr;
+import com.bbd.exchange.mobile.ExchangeRequestMgr;
 import com.bbd.exchange.mqtt.CabinetBoxContainer;
 import com.bbd.exchange.mqtt.DownstreamCabinetMessage;
 import com.bbd.exchange.mqtt.InteractionCommand;
 import com.bbd.exchange.mqtt.UpstreamCabinetMessage;
+import com.bbd.exchange.service.ExchangeServiceRequestMgr;
 
 public class NotifyCabinetMessageHandling implements CabinetMessageHandling {
 	private static final Logger logger = LoggerFactory.getLogger(NotifyCabinetMessageHandling.class);
@@ -19,33 +20,14 @@ public class NotifyCabinetMessageHandling implements CabinetMessageHandling {
 
 	void doorOpenedHandling(CabinetBoxObject boxObj, CabinetBoxContainer ele) {
 		logger.info("{}@{} received door opened message", boxObj.getBoxID(), boxObj.getBoxState());
-
 	}
 	
 	void doorOpenedSucceedHandling(CabinetBoxObject boxObj, CabinetBoxContainer ele) {
-		logger.info("{}@{} received door open succeeded message", boxObj.getBoxID(), boxObj.getBoxState());
 
-		if (boxObj.getBoxState().equals(CabinetBoxObject.EMPTY_W4OPENED)) {
-			boxObj.newState(CabinetBoxObject.EMPTY_W4CLOSED);
-		} else if (boxObj.getBoxState().equals(CabinetBoxObject.FULL_W4OPENED)) {
-			boxObj.newState(CabinetBoxObject.FULL_W4CLOSED);
-		} else {
-			logger.error("abnormal state:" + boxObj.toString());
-		}
-		boxObj.storeSingleAttr2Redis(CabinetBoxObject.STATE);
 	}
 	
 	void doorOpenedFailedHandling(CabinetBoxObject boxObj, CabinetBoxContainer ele) {
-		logger.info("{}@{} received door open failed message", boxObj.getBoxID(), boxObj.getBoxState());
 
-		if (boxObj.getBoxState().equals(CabinetBoxObject.EMPTY_W4OPENED)) {
-			boxObj.newState(CabinetBoxObject.EMPTY_W4CLOSED);
-		} else if (boxObj.getBoxState().equals(CabinetBoxObject.FULL_W4OPENED)) {
-			boxObj.newState(CabinetBoxObject.FULL_W4CLOSED);
-		} else {
-			logger.error("abnormal state:" + boxObj.toString());
-		}
-		boxObj.storeSingleAttr2Redis(CabinetBoxObject.STATE);
 	}
 
 	void doorClosedHandling(CabinetBoxObject boxObj, CabinetBoxContainer ele) {
@@ -96,17 +78,6 @@ public class NotifyCabinetMessageHandling implements CabinetMessageHandling {
 	}
 
 	void doorW4ClosedExpireHandling(CabinetBoxObject boxObj, CabinetBoxContainer ele) {
-		logger.info("{}@{} received W4ClosedExpire message", boxObj.getBoxID(), boxObj.getBoxState());
-
-		if (boxObj.getBoxState().equals(CabinetBoxObject.EMPTY_W4CLOSED)) {
-			return;
-		}
-		
-		if (boxObj.getBoxState().equals(CabinetBoxObject.FULL_W4CLOSED)) {
-			return;
-		}
-		
-		logger.error("{} should not receive the notify", boxObj.getBoxID());
 	}
 	
 	@Override
@@ -137,24 +108,25 @@ public class NotifyCabinetMessageHandling implements CabinetMessageHandling {
 			
 			/* door opened successfully...*/
 			if (ele.getResponseCode() == InteractionCommand.RESCODE_OPENSUCC) {
-				doorOpenedSucceedHandling(boxObj, ele);
+				ExchangeServiceRequestMgr.getInstance().notifyDoorOpenedSucceed(boxObj, ele);
 				continue;
 			}
 			
 			/* door wasn't opened. exception...lock is error...*/
 			if (ele.getResponseCode() == InteractionCommand.RESCODE_OPENFAIL) {
-				doorOpenedFailedHandling(boxObj, ele);
+				ExchangeServiceRequestMgr.getInstance().notifyDoorOpenedFailed(boxObj, ele);
 				continue;
 			}
 
-			
 			if (ele.getResponseCode() == InteractionCommand.RESCODE_W4CLOSEDEXPIRE) {
-				doorW4ClosedExpireHandling(boxObj, ele);
+				//doorW4ClosedExpireHandling(boxObj, ele);
+				ExchangeServiceRequestMgr.getInstance().notifyWait4DoorClosedExpire(boxObj, ele);
 				continue;
 			}		
 			
 			if (ele.getResponseCode() == InteractionCommand.RESCODE_CLOSED) {
-				doorClosedHandling(boxObj, ele);
+				//doorClosedHandling(boxObj, ele);
+				ExchangeServiceRequestMgr.getInstance().notifyDoorClosed(boxObj, ele);
 				continue;
 			}
 		}

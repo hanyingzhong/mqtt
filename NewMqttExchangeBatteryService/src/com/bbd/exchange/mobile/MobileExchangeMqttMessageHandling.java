@@ -7,7 +7,6 @@ import com.bbd.exchange.control.CabinetBoxObject;
 import com.bbd.exchange.control.CabinetControlObject;
 import com.bbd.exchange.control.CabinetMgrContainer;
 import com.bbd.exchange.control.DeviceMgrContainer;
-import com.bbd.exchange.dbintf.ExchangeRequestMgr;
 import com.bbd.exchange.mqtt.DownstreamCabinetMessage;
 import com.bbd.exchange.mqtt.InteractionCommand;
 import com.bbd.exchange.mqtt.UpstreamCabinetMessage;

@@ -2,6 +2,8 @@ package com.bbd.exchange.control;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,13 +43,23 @@ public class CabinetBoxObject implements ExchangeControlObject {
 	public static final String BATERYTYPE_60 = "6";
 	public static final String BATERYTYPE_72 = "7";
 
+	public static final String WAIT4EDOOROPENED = "wait4emptydoorOpened";
+	public static final String WAIT4EDOORCLOSED = "wait4emptydoorClosed";
+	public static final String WAIT4FDOOROPENED = "wait4fulledoorOpened";
+	public static final String WAIT4FDOORCLOSED = "wait4fulledoorClosed";
+
 	public static final int redisStoreAera = 3;
-	
+
 	String cabinetID;
 	int ID;
 	String boxID; /* cabinetID/1 */
 
 	Map<String, String> map = new HashMap<String, String>();
+	Map<String, ScheduledFuture<?>> timerMap = new ConcurrentHashMap<String, ScheduledFuture<?>>();
+
+	public Map<String, ScheduledFuture<?>> getTimerMap() {
+		return timerMap;
+	}
 
 	public CabinetBoxObject(String cabinetID, int iD) {
 		this.cabinetID = cabinetID;
@@ -60,6 +72,10 @@ public class CabinetBoxObject implements ExchangeControlObject {
 		map.put(CabinetBoxObject.CAPACITY, "null");
 		map.put(CabinetBoxObject.STATE, CabinetBoxObject.IDLE);
 		map.put(CabinetBoxObject.DOORSTATUS, CabinetBoxObject.DOOR_CLOSED);
+	}
+
+	public void timerExipre(String timerID) {
+		logger.info(boxID + " receives timer : " + timerID);
 	}
 
 	public void setBoxAttr(CabinetBoxContainer ele) {
@@ -87,7 +103,7 @@ public class CabinetBoxObject implements ExchangeControlObject {
 		jedis.hmset(getBoxID(), getMap());
 		RedisUtils.returnResource(jedis);
 	}
-	
+
 	public void storeSingleAttr2Redis(String attr) {
 		Jedis jedis = RedisUtils.getJedis();
 		jedis.select(CabinetBoxObject.redisStoreAera);
@@ -102,6 +118,28 @@ public class CabinetBoxObject implements ExchangeControlObject {
 	public void newState(String state) {
 		map.put(CabinetBoxObject.STATE, state);
 		logger.info("{}, new state : {}", boxID, state);
+	}
+
+	public void setTimer(String timerID, int timerLength) {
+		BoxTimerMessage boxTimer = new BoxTimerMessage(getCabinetID(), Integer.toString(getID() + 1),
+				timerID);
+		BoxTimerTask task = new BoxTimerTask(boxTimer);
+		
+		ScheduledFuture<?> result = TimerMgr.setTimer(task, timerLength);
+		if(result != null) {
+			getTimerMap().put(timerID, result);
+			logger.info("{}, Set timer : {}", getBoxID(), timerID);
+		}
+	}
+
+	public void killTimer(String timerID) {
+		ScheduledFuture<?> schedule = getTimerMap().get(timerID);
+
+		if (schedule != null) {
+			logger.info("{}, Kill timer : {}", getBoxID(), timerID);
+			schedule.cancel(false);
+			getTimerMap().remove(timerID);
+		}
 	}
 
 	public String getBoxID() {
@@ -119,11 +157,11 @@ public class CabinetBoxObject implements ExchangeControlObject {
 	public String getBatteryType() {
 		return getMap().get(BATERYTYPE);
 	}
-	
+
 	public int getCapacity() {
 		return Integer.parseInt(getMap().get(CAPACITY));
 	}
-	
+
 	public String getBoxState() {
 		return getMap().get(STATE);
 	}
