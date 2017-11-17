@@ -138,6 +138,7 @@ public class ExchangeServiceRequestMgr {
 				InteractionCommand.DOWN_MODIFY, InteractionCommand.DOWN_SUB_OPEN, empty.getID() + 1);
 		if (false == open.checkAndSetDeviceID()) {
 			/* return false message to .... */
+			logger.warn("{}'s not associated.", message.getCabinetID());
 			return;
 		}
 		open.publish(open);

@@ -30,7 +30,7 @@ public class HuandianguiService {
 	static String server = MqttCfgUtil.getServerUri();
 	static String username = "parry";
 	static char[] password = "parry123".toCharArray();
-	static String clientId = "Device-1545662222222";
+	static String clientId = "Device-1545ASD222222";
 	static int keepAlive = 60;
 
 	static Timer timer = new Timer();

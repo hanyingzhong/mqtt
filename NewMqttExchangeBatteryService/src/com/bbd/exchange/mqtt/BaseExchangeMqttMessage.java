@@ -4,9 +4,14 @@ import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bbd.exchange.util.NumberUtil;
 
 public class BaseExchangeMqttMessage {
+    private static final Logger logger = LoggerFactory.getLogger(BaseExchangeMqttMessage.class);
+
 	final static int cainetTagValue = 0x0100;
 	final static int boxIdBaseValue = 0xa000;
 	final static int cmdTagValue = 0x0501;
@@ -99,6 +104,7 @@ public class BaseExchangeMqttMessage {
 			int paramID = NumberUtil.byte2ToUnsignedShort(buffer, pos);
 			if (paramID == timeTagValue) {
 				pos = decodeTime(buffer, pos);
+				logger.info("@time:"+time);
 				continue;
 			}
 			
