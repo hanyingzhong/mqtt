@@ -28,6 +28,10 @@ public class ExchangeRequestMessage implements ServiceMessage {
 		return "exchange/" + requestID;
 	}
 	
+	public String receiveTopic() {
+		return "exchangeResponse/" + requestID;
+	}
+	
 	public String getNotifyTopic() {
 		return notifyTopic;
 	}

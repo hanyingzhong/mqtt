@@ -37,6 +37,10 @@ public class HandlingOriginalMqttMessage extends Thread {
 			if (false == upmsg.decode(baseMsg)) {
 				return null;
 			}
+
+			if (baseMsg.getCabinetVoltage() != null) {
+				upmsg.setVoltage(baseMsg.getCabinetVoltage());
+			}
 			return upmsg;
 		}
 
@@ -49,7 +53,7 @@ public class HandlingOriginalMqttMessage extends Thread {
 			}
 			return dowmmsg;
 		}
-		
+
 		return null;
 	}
 }

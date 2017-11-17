@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bbd.exchange.control.AssociatedCabinetMessageHandling;
+import com.bbd.exchange.control.CabinetControlObject;
+import com.bbd.exchange.control.CabinetMgrContainer;
 import com.bbd.exchange.control.DisassociateCabinetMessageHandling;
 import com.bbd.exchange.control.NotifyCabinetMessageHandling;
 import com.bbd.exchange.util.NumberUtil;
@@ -17,6 +19,7 @@ public class UpstreamCabinetMessage implements ExchangeMqttMessage {
 	String deviceID;
 	String cabinetID;
 	String verb;
+	String voltage;
 
 	List<CabinetBoxContainer> boxList = new LinkedList<CabinetBoxContainer>();
 
@@ -160,4 +163,13 @@ public class UpstreamCabinetMessage implements ExchangeMqttMessage {
 	public void setVerb(String verb) {
 		this.verb = verb;
 	}
+
+	public String getVoltage() {
+		return voltage;
+	}
+
+	public void setVoltage(String voltage) {
+		this.voltage = voltage;
+	}
+	
 }

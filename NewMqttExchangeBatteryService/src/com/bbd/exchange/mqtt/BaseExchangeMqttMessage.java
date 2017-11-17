@@ -11,6 +11,7 @@ public class BaseExchangeMqttMessage {
 	final static int boxIdBaseValue = 0xa000;
 	final static int cmdTagValue = 0x0501;
 	final static int timeTagValue = 0x9000;
+	final static int valtageValue = 0x8000;
 
 	public Topic getTopic() {
 		return topic;
@@ -39,6 +40,7 @@ public class BaseExchangeMqttMessage {
 	String cabinet = new String("");
 	String cmd = new String("");
 	String time = null;
+	String cabinetVoltage = null;
 
 	public List<CabinetBox> getMsg() {
 		return msgList;
@@ -99,6 +101,12 @@ public class BaseExchangeMqttMessage {
 				pos = decodeTime(buffer, pos);
 				continue;
 			}
+			
+			if (paramID == valtageValue) {
+				pos = decodeCabinetVoltage(buffer, pos);
+				continue;
+			}
+			
 			/*******************************************************************/
 			if ((paramID < boxIdBaseValue) || paramID > (boxIdBaseValue + 12)) {
 				return false;
@@ -152,6 +160,31 @@ public class BaseExchangeMqttMessage {
 		return pos;
 	}
 
+	public int decodeCabinetVoltage(byte[] buffer, int pos) {
+		int tag;
+		String param;
+		int length;
+
+		tag = NumberUtil.byte2ToUnsignedShort(buffer, pos);
+		if (tag != valtageValue) {
+			return -1;
+		}
+		pos += 2;
+		length = NumberUtil.byte2ToUnsignedShort(buffer, pos);
+		pos += 2;
+
+		try {
+			param = new String(buffer, pos, length, "utf-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return -1;
+		}
+
+		pos += length;
+		cabinetVoltage = param;
+		return pos;
+	}
+	
 	public int decodeCabinetID(byte[] buffer, int pos) {
 		int tag;
 		String param;
@@ -216,6 +249,14 @@ public class BaseExchangeMqttMessage {
 
 	public String getCmd() {
 		return cmd;
+	}
+
+	public String getCabinetVoltage() {
+		return cabinetVoltage;
+	}
+
+	public void setCabinetVoltage(String cabinetVoltage) {
+		this.cabinetVoltage = cabinetVoltage;
 	}
 
 	byte[] encode() {

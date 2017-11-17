@@ -11,7 +11,7 @@ public class MqttDateTime {
 		return time;
 	}
 
-	static String getCurrentTime() {
+	public static String getCurrentTime() {
 		return CurrentDateTime2String();
 	}
 }

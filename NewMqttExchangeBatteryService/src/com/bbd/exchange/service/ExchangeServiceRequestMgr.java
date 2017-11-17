@@ -9,9 +9,12 @@ import com.bbd.exchange.control.BoxTimerMessage;
 import com.bbd.exchange.control.CabinetBoxObject;
 import com.bbd.exchange.control.CabinetMgrContainer;
 import com.bbd.exchange.mqtt.CabinetBoxContainer;
+import com.bbd.exchange.mqtt.CommonClientMqttMsgCallback;
+import com.bbd.exchange.mqtt.CommonExchangeMqttClient;
 import com.bbd.exchange.mqtt.DownstreamCabinetMessage;
 import com.bbd.exchange.mqtt.InteractionCommand;
 import com.bbd.exchange.mqtt.UpstreamCabinetMessage;
+import com.bbd.exchange.util.MqttCfgUtil;
 
 /*
  * manage exchange request 
@@ -30,6 +33,21 @@ public class ExchangeServiceRequestMgr {
 	}
 
 	static ConcurrentHashMap<String, RemoteExchangeRequest> requestMgr = new ConcurrentHashMap<String, RemoteExchangeRequest>();
+	static CommonExchangeMqttClient mqttClient;
+
+	static {
+		if (mqttClient == null) {
+			mqttClient = new CommonExchangeMqttClient(MqttCfgUtil.getServerUri(), "parry", "parry123",
+					"ExchangeServiceRequestMgr", null);
+
+			try {
+				mqttClient.initClient(new CommonClientMqttMsgCallback(mqttClient));
+				mqttClient.connect();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
 	public void addRequestInstance(CabinetBoxObject empty, CabinetBoxObject full, ExchangeRequestMessage request) {
 		requestMgr.put(empty.getBoxID(), new RemoteExchangeRequest(full, request));
@@ -42,7 +60,11 @@ public class ExchangeServiceRequestMgr {
 	}
 
 	public CabinetBoxObject getAssociatedBox(CabinetBoxObject closed) {
-		return requestMgr.get(closed.getBoxID()).getAssociatedBox();
+		if (requestMgr.get(closed.getBoxID()) != null) {
+			return requestMgr.get(closed.getBoxID()).getAssociatedBox();
+		}
+		
+		return null;
 	}
 
 	public void removeRequestInstance(CabinetBoxObject closed) {
@@ -61,12 +83,35 @@ public class ExchangeServiceRequestMgr {
 
 	void wait4EmptyBoxClosedFailed(CabinetBoxObject empty) {
 		CabinetBoxObject full = getAssociatedBox(empty);
+		full.killTimer(CabinetBoxObject.WAIT4EDOOROPENED);
 		requestMgr.remove(empty.getBoxID());
 		requestMgr.remove(full.getBoxID());
 	}
 
 	void wait4FullBoxOpenedFailed(CabinetBoxObject full) {
+		full.killTimer(CabinetBoxObject.WAIT4FDOOROPENED);
 		requestMgr.remove(full.getBoxID());
+	}
+
+	@SuppressWarnings("static-access")
+	void sendEmptyExchangeFailedNotify(CabinetBoxObject empty, String result) {
+		RemoteExchangeRequest request = getExchangeRequestMessage(empty);
+		ExchangeServiceResponseMessage response = new ExchangeServiceResponseMessage(
+				request.getMessage().getRequestID(), request.getMessage().getCabinetID(),
+				request.getMessage().getNotifyTopic(), result);
+
+		logger.info(request.getMessage().getNotifyTopic() + "===>" + response.encode2Json(response));
+		mqttClient.sendPublish(request.getMessage().getNotifyTopic(), response.encode2Json(response));
+	}
+
+	void sendExchangeSucceededNotify(CabinetBoxObject full, String result) {
+		RemoteExchangeRequest request = getExchangeRequestMessage(full);
+		ExchangeServiceResponseMessage response = new ExchangeServiceResponseMessage(
+				request.getMessage().getRequestID(), request.getMessage().getCabinetID(),
+				request.getMessage().getNotifyTopic(), result);
+
+		logger.info(request.getMessage().getNotifyTopic() + "===>" + response.encode2Json(response));
+		mqttClient.sendPublish(request.getMessage().getNotifyTopic(), response.encode2Json(response));
 	}
 
 	public void exchangeRequestMessageHandling(ExchangeRequestMessage message) {
@@ -107,7 +152,7 @@ public class ExchangeServiceRequestMgr {
 		 * CabinetBoxObject.WAIT4EDOOROPENED), 15);
 		 * empty.getTimerMap().put(CabinetBoxObject.WAIT4EDOOROPENED, timer);
 		 */
-		empty.setTimer(CabinetBoxObject.WAIT4EDOOROPENED, 10);
+		empty.setTimer(CabinetBoxObject.WAIT4EDOOROPENED, 20);
 	}
 
 	void boxTimerExpire(CabinetBoxObject boxObj, String timer) {
@@ -117,6 +162,7 @@ public class ExchangeServiceRequestMgr {
 
 			/* send exchange failed notify */
 			logger.info("request {} failed", request.getMessage().getRequestID());
+			sendEmptyExchangeFailedNotify(boxObj, "wait for empty box open-ack failed");
 			wait4EmptyBoxOpenedFailed(boxObj);
 			return;
 		}
@@ -127,6 +173,7 @@ public class ExchangeServiceRequestMgr {
 
 			/* send exchange failed notify */
 			logger.info("request {} failed", request.getMessage().getRequestID());
+			sendEmptyExchangeFailedNotify(boxObj, "wait for full box open-ack failed");
 			wait4EmptyBoxOpenedFailed(boxObj);
 			return;
 		}
@@ -236,17 +283,18 @@ public class ExchangeServiceRequestMgr {
 
 		if (boxObj.getBoxState().equals(CabinetBoxObject.FULL_W4CLOSED)) {
 			if (ele.isBatteryNotExist()) {
-				/*exchange succeeded!!!!!!!!!!!!!!!!!*/
+				/* exchange succeeded!!!!!!!!!!!!!!!!! */
 				boxObj.newState(CabinetBoxObject.IDLE);
 				boxObj.killTimer(CabinetBoxObject.WAIT4FDOORCLOSED);
-				/*send exchange succeed message*/
-				
-				
+				/* send exchange succeed message */
+
+				sendExchangeSucceededNotify(boxObj, "Exchange succeeded");
 				removeRequestInstance(boxObj);
 			} else {
 				/* exception generate warn...? */
 				boxObj.newState(CabinetBoxObject.IDLE);
-
+				boxObj.killTimer(CabinetBoxObject.WAIT4FDOORCLOSED);
+				sendExchangeSucceededNotify(boxObj, "Exchange failed, battery should not exist.");
 			}
 		}
 

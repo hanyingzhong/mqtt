@@ -21,11 +21,11 @@ public class NotifyCabinetMessageHandling implements CabinetMessageHandling {
 	void doorOpenedHandling(CabinetBoxObject boxObj, CabinetBoxContainer ele) {
 		logger.info("{}@{} received door opened message", boxObj.getBoxID(), boxObj.getBoxState());
 	}
-	
+
 	void doorOpenedSucceedHandling(CabinetBoxObject boxObj, CabinetBoxContainer ele) {
 
 	}
-	
+
 	void doorOpenedFailedHandling(CabinetBoxObject boxObj, CabinetBoxContainer ele) {
 
 	}
@@ -34,7 +34,7 @@ public class NotifyCabinetMessageHandling implements CabinetMessageHandling {
 		CabinetControlObject mgrObj = CabinetMgrContainer.getInstance().getCabinetControlObject(ele.getCabinetID());
 
 		logger.info("{}@{} received door closed message", boxObj.getBoxID(), boxObj.getBoxState());
-		
+
 		if (boxObj.getBoxState().equals(CabinetBoxObject.EMPTY_W4CLOSED)) {
 			if (ele.isBatteryExist()) {
 				CabinetBoxObject associatedBox = null;
@@ -43,15 +43,15 @@ public class NotifyCabinetMessageHandling implements CabinetMessageHandling {
 				logger.info("box " + boxObj.toString());
 				associatedBox = ExchangeRequestMgr.getInstance().getAssociatedBox(boxObj);
 				ExchangeRequestMgr.getInstance().removeRequestInstance(boxObj);
-				
+
 				mgrObj.move2EmptyBoxHashSet(boxObj);
 				if (ele.isBatteryExist()) {
 					boxObj.newState(CabinetBoxObject.IDLE);
-				}else {
-					/*exception generate warn...?*/
+				} else {
+					/* exception generate warn...? */
 					boxObj.newState(CabinetBoxObject.IDLE);
 				}
-				
+
 				if (associatedBox != null) {
 					/* publish to device/cabinetID */
 					DownstreamCabinetMessage message = new DownstreamCabinetMessage(associatedBox.getCabinetID(),
@@ -62,24 +62,24 @@ public class NotifyCabinetMessageHandling implements CabinetMessageHandling {
 				}
 			}
 		}
-		
+
 		if (boxObj.getBoxState().equals(CabinetBoxObject.FULL_W4CLOSED)) {
 			if (ele.isBatteryNotExist()) {
 				boxObj.newState(CabinetBoxObject.IDLE);
-			}else {
-				/*exception generate warn...?*/
+			} else {
+				/* exception generate warn...? */
 				boxObj.newState(CabinetBoxObject.IDLE);
 
-			}	
+			}
 		}
-		
+
 		boxObj.store2Redis();
-		ExchangeRequestMgr.getInstance().removeRequestInstance(boxObj);	
+		ExchangeRequestMgr.getInstance().removeRequestInstance(boxObj);
 	}
 
 	void doorW4ClosedExpireHandling(CabinetBoxObject boxObj, CabinetBoxContainer ele) {
 	}
-	
+
 	@Override
 	public void handling(UpstreamCabinetMessage msg) {
 		CabinetControlObject mgrObj = CabinetMgrContainer.getInstance().getCabinetControlObject(msg.getCabinetID());
@@ -87,6 +87,10 @@ public class NotifyCabinetMessageHandling implements CabinetMessageHandling {
 		if (mgrObj == null) {
 			logger.error("{} is not configured.", msg.getCabinetID());
 			return;
+		}
+
+		if (msg.getVoltage() != null) {
+			mgrObj.setVoltage(msg.getVoltage());
 		}
 
 		for (CabinetBoxContainer ele : msg.getBoxList()) {
@@ -100,32 +104,32 @@ public class NotifyCabinetMessageHandling implements CabinetMessageHandling {
 
 			/***
 			 * The case only happened when maintaining status
-			 * ***/
+			 ***/
 			if (ele.getResponseCode() == InteractionCommand.RESCODE_OPENED) {
 				doorOpenedHandling(boxObj, ele);
 				continue;
 			}
-			
-			/* door opened successfully...*/
+
+			/* door opened successfully... */
 			if (ele.getResponseCode() == InteractionCommand.RESCODE_OPENSUCC) {
 				ExchangeServiceRequestMgr.getInstance().notifyDoorOpenedSucceed(boxObj, ele);
 				continue;
 			}
-			
-			/* door wasn't opened. exception...lock is error...*/
+
+			/* door wasn't opened. exception...lock is error... */
 			if (ele.getResponseCode() == InteractionCommand.RESCODE_OPENFAIL) {
 				ExchangeServiceRequestMgr.getInstance().notifyDoorOpenedFailed(boxObj, ele);
 				continue;
 			}
 
 			if (ele.getResponseCode() == InteractionCommand.RESCODE_W4CLOSEDEXPIRE) {
-				//doorW4ClosedExpireHandling(boxObj, ele);
+				// doorW4ClosedExpireHandling(boxObj, ele);
 				ExchangeServiceRequestMgr.getInstance().notifyWait4DoorClosedExpire(boxObj, ele);
 				continue;
-			}		
-			
+			}
+
 			if (ele.getResponseCode() == InteractionCommand.RESCODE_CLOSED) {
-				//doorClosedHandling(boxObj, ele);
+				// doorClosedHandling(boxObj, ele);
 				ExchangeServiceRequestMgr.getInstance().notifyDoorClosed(boxObj, ele);
 				continue;
 			}

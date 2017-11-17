@@ -3,10 +3,11 @@ package com.bbd.exchange.service;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import com.bbd.exchange.mqtt.ExchangeMessageQueue;
-import com.bbd.exchange.mqtt.MqttOriginalMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ServiceMessageQueue implements OriginalServiceMessageQueue{
+	private static final Logger logger = LoggerFactory.getLogger(ExchangeServiceResponseMessage.class);
 	//private static Queue<MqttOriginalMessage> queue = new ConcurrentLinkedQueue<MqttOriginalMessage>();
 	private static BlockingQueue<ServiceMessage> queue = new LinkedBlockingQueue<ServiceMessage>(1024);
 
@@ -19,7 +20,7 @@ public class ServiceMessageQueue implements OriginalServiceMessageQueue{
 	@Override
 	public void add(ServiceMessage message) {
 		if(false == queue.offer(message)) {
-			System.out.println(this.getClass().getName() + "queue is full.");
+			logger.error(this.getClass().getName() + "queue is full.");
 		}	
 	}
 

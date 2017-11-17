@@ -12,6 +12,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import com.bbd.exchange.mobile.ClientRequestMessage;
+import com.bbd.exchange.mqtt.CommonClientMqttMsgCallback;
+import com.bbd.exchange.mqtt.CommonExchangeMqttClient;
 import com.bbd.exchange.service.ExchangeRequestMessage;
 import com.bbd.exchange.service.ServiceMqttClient;
 import com.bbd.exchange.util.MqttCfgUtil;
@@ -28,7 +30,20 @@ public class SimulationExchangeClient extends JFrame {
 	 */
 	private static final long serialVersionUID = 1L;
 	static ExchangeMqttClient mqttClient;
+	static CommonExchangeMqttClient newMqttClient;
 
+	static {
+		newMqttClient = new CommonExchangeMqttClient(MqttCfgUtil.getServerUri(), "parry", "parry123",
+				"TEST-3245662ER", null);
+
+		try {
+			newMqttClient.initClient(new CommonClientMqttMsgCallback(newMqttClient));
+			newMqttClient.connect();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	static JTextField requestTypeText;
 	/*
 	 * store the request user info.......
@@ -105,14 +120,17 @@ public class SimulationExchangeClient extends JFrame {
 				
 				message.setRequestID("18616996973");
 				message.setBatteryType("60V20A");
-				message.setCabinetID("HDG-00001238");
+				//message.setCabinetID("HDG-00001238");
+				message.setCabinetID("EB000001");
 				message.setEmptyBoxID("1");
-				message.setFullEnergyBoxID("9");
-				message.setNotifyTopic(mqttClient.getSubscribeTopic());
+				message.setFullEnergyBoxID("2");
+				message.setNotifyTopic(message.receiveTopic());
+				newMqttClient.sendSubscribe(message.receiveTopic());
 				
 				String exchange = ExchangeRequestMessage.encode2Json(message);
 				
-				ServiceMqttClient.getInstance().publish(message.destinationTopic(), exchange);
+				newMqttClient.sendPublish(message.destinationTopic(), exchange);
+				//ServiceMqttClient.getInstance().publish(message.destinationTopic(), exchange);
 			}
 		});
 	}

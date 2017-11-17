@@ -23,6 +23,7 @@ public class CabinetControlObject implements ExchangeControlObject {
 	public static final String STATE = "state";
 	public static final String WORKSTATE = "workstate";
 	public static final String DEVICEID = "deviceid";
+	public static final String VOLAGE = "voltage";
 	
 /*	public String state = OFFLINE;
 	public String workstate = WORKSTATE_IDLE;
@@ -160,6 +161,11 @@ public class CabinetControlObject implements ExchangeControlObject {
 		storeSingleAttr2Redis(CabinetControlObject.WORKSTATE);
 	}
 
+	public void setVoltage(String voltage) {
+		map.put(CabinetControlObject.VOLAGE, voltage);
+		storeSingleAttr2Redis(CabinetControlObject.VOLAGE);
+	}
+	
 	public void setDeviceId(String deviceid) {
 		map.put(CabinetControlObject.DEVICEID, deviceid);
 		storeSingleAttr2Redis(CabinetControlObject.DEVICEID);
