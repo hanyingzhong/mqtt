@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import com.bbd.exchange.control.CabinetControlObject;
 import com.bbd.exchange.control.CabinetMgrContainer;
 import com.bbd.exchange.control.NotifyCabinetMessageHandling;
+import com.bbd.exchange.mqtt.DownCabinetStateSyncMessage;
 import com.bbd.exchange.mqtt.DownRebootCabinetMessage;
 import com.bbd.exchange.util.RedisUtils;
 
@@ -97,6 +98,14 @@ public class CabinetLoadInterface {
 		logger.info("send down Reboot message to {}/{}", deviceID, cabinetID);
 	}
 	
+	static void sendDownSyncMessage(String cabinetID, String deviceID) {
+		DownCabinetStateSyncMessage sync = new DownCabinetStateSyncMessage(cabinetID, 0);
+		
+		sync.setDeviceID(deviceID);
+		sync.publish(sync);
+		logger.info("send down sync message to {}/{}", deviceID, cabinetID);
+	}
+	
 	/*if the record number is huge...the function will delay......*/
 	static void loadFromRedis() {
 		Set<String> cabinets = getCabinetKeysFromRedis();
@@ -116,6 +125,7 @@ public class CabinetLoadInterface {
 				createCabinet(cabinet, defaultBoxNum);
 				if(deviceID != null) {
 					sendDownRebootMessage(cabinet, deviceID);
+					//sendDownSyncMessage(cabinet, deviceID);
 				}
 					
 				logger.info(cabinet + " : " + attr);

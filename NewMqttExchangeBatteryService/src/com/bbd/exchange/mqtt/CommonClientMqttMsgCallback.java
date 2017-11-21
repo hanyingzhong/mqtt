@@ -14,7 +14,7 @@ public class CommonClientMqttMsgCallback implements MqttCallback{
 
 	@Override
 	public void connectionLost(Throwable arg0) {
-		client.connect();
+		//client.connect();
 	}
 
 	@Override

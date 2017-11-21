@@ -14,6 +14,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import com.bbd.exchange.mqtt.CabinetBoxContainer;
+import com.bbd.exchange.mqtt.DownCabinetStateSyncMessage;
 import com.bbd.exchange.mqtt.DownRebootCabinetMessage;
 import com.bbd.exchange.mqtt.DownstreamCabinetMessage;
 import com.bbd.exchange.mqtt.InteractionCommand;
@@ -49,7 +50,7 @@ public class SimulationCabinetClient extends JFrame {
 	static JTextField boxIdText;
 	static Choice boxStatusChoice;
 	static Choice batteryExistChoice;
-	
+
 	public SimulationCabinetClient() {
 		this.setSize(350, 200);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -114,7 +115,7 @@ public class SimulationCabinetClient extends JFrame {
 		JLabel passwordLabel = new JLabel("door status:");
 		passwordLabel.setBounds(10, 300, 100, 25);
 		panel.add(passwordLabel);
-		
+
 		boxStatusChoice = new Choice();
 		boxStatusChoice.add("closed");
 		boxStatusChoice.add("opened");
@@ -132,7 +133,7 @@ public class SimulationCabinetClient extends JFrame {
 		JLabel passwordLabel = new JLabel("Battery status:");
 		passwordLabel.setBounds(10, 350, 100, 25);
 		panel.add(passwordLabel);
-		
+
 		batteryExistChoice = new Choice();
 		batteryExistChoice.add("exist");
 		batteryExistChoice.add("empty");
@@ -142,19 +143,19 @@ public class SimulationCabinetClient extends JFrame {
 		batteryExistChoice.setFont(font);
 		panel.add(batteryExistChoice);
 	}
-	
+
 	static boolean checkIdValidity() {
-		if(Integer.parseInt(boxIdText.getText()) > 12) {
+		if (Integer.parseInt(boxIdText.getText()) > 12) {
 			return false;
 		}
-		
-		if(Integer.parseInt(boxIdText.getText()) < 1) {
+
+		if (Integer.parseInt(boxIdText.getText()) < 0) {
 			return false;
 		}
-		
+
 		return true;
 	}
-	
+
 	private static void placeAssoButtonType(JPanel panel, Font font) {
 		JButton assoButton = new JButton("Associate");
 		assoButton.setBounds(350, 450, 150, 25);
@@ -167,14 +168,14 @@ public class SimulationCabinetClient extends JFrame {
 				UpstreamCabinetMessage msg = new UpstreamCabinetMessage("asso");
 				CabinetBoxContainer box = new CabinetBoxContainer("HDG-00001238");
 
-				if(false == checkIdValidity()) {
+				if (false == checkIdValidity()) {
 					JOptionPane.showMessageDialog(null, "Box-ID:" + boxIdText.getText() + " must be in[1,12]");
 					return;
 				}
-				
+
 				msg.setDeviceID(deviceIdText.getText());
 				msg.setCabinetID(cabinetIdText.getText());
-				//msg.setVerb("noti");
+				// msg.setVerb("noti");
 
 				box.setId(Integer.parseInt(boxIdText.getText()));
 				box.setBatteryExist(true);
@@ -207,11 +208,11 @@ public class SimulationCabinetClient extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				UpstreamDisassociateMessage msg = new UpstreamDisassociateMessage("disa");
 
-				if(false == checkIdValidity()) {
+				if (false == checkIdValidity()) {
 					JOptionPane.showMessageDialog(null, "Box-ID:" + boxIdText.getText() + " must be in[1,12]");
 					return;
 				}
-				
+
 				msg.setDeviceID(deviceIdText.getText());
 				msg.setCabinetID(cabinetIdText.getText());
 
@@ -226,7 +227,7 @@ public class SimulationCabinetClient extends JFrame {
 			}
 		});
 	}
-	
+
 	private static void placeRebootButtonType(JPanel panel, Font font) {
 		JButton notifyButton = new JButton("Reboot");
 		notifyButton.setBounds(150, 450, 150, 25);
@@ -236,20 +237,21 @@ public class SimulationCabinetClient extends JFrame {
 		notifyButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(false == checkIdValidity()) {
+				if (false == checkIdValidity()) {
 					JOptionPane.showMessageDialog(null, "Box-ID:" + boxIdText.getText() + " must be in[1,12]");
 					return;
 				}
 
-				DownRebootCabinetMessage message = new DownRebootCabinetMessage(cabinetIdText.getText(), Integer.parseInt("0"));
+				DownRebootCabinetMessage message = new DownRebootCabinetMessage(cabinetIdText.getText(),
+						Integer.parseInt("0"));
 				message.checkAndSetDeviceID();
 				message.setDeviceID(deviceIdText.getText());
 
-				message.publish(message);	
+				message.publish(message);
 			}
 		});
 	}
-	
+
 	private static void placeOpenButtonType(JPanel panel, Font font) {
 		JButton notifyButton = new JButton("Open");
 		notifyButton.setBounds(150, 500, 150, 25);
@@ -259,17 +261,18 @@ public class SimulationCabinetClient extends JFrame {
 		notifyButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(false == checkIdValidity()) {
+				if (false == checkIdValidity()) {
 					JOptionPane.showMessageDialog(null, "Box-ID:" + boxIdText.getText() + " must be in[1,12]");
 					return;
 				}
 
-				DownstreamCabinetMessage message = new DownstreamCabinetMessage(cabinetIdText.getText(), InteractionCommand.DOWN_MODIFY,
-						InteractionCommand.DOWN_SUB_OPEN, Integer.parseInt(boxIdText.getText()));
+				DownstreamCabinetMessage message = new DownstreamCabinetMessage(cabinetIdText.getText(),
+						InteractionCommand.DOWN_MODIFY, InteractionCommand.DOWN_SUB_OPEN,
+						Integer.parseInt(boxIdText.getText()));
 				message.checkAndSetDeviceID();
 				message.setDeviceID(deviceIdText.getText());
 
-				message.publish(message);	
+				message.publish(message);
 			}
 		});
 	}
@@ -283,21 +286,28 @@ public class SimulationCabinetClient extends JFrame {
 		notifyButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(false == checkIdValidity()) {
-					JOptionPane.showMessageDialog(null, "Box-ID:" + boxIdText.getText() + " must be in[1,12]");
+				if (false == checkIdValidity()) {
+					JOptionPane.showMessageDialog(null, "Box-ID:" + boxIdText.getText() + " must be in[0,12]");
 					return;
 				}
 
-				DownstreamCabinetMessage message = new DownstreamCabinetMessage(cabinetIdText.getText(), InteractionCommand.DOWN_MODIFY,
-						InteractionCommand.DOWN_SUB_SYNCBOXSTATUS, Integer.parseInt(boxIdText.getText()));
-				message.checkAndSetDeviceID();
+				/*
+				 * DownstreamCabinetMessage message = new
+				 * DownstreamCabinetMessage(cabinetIdText.getText(),
+				 * InteractionCommand.DOWN_MODIFY, InteractionCommand.DOWN_SUB_SYNCBOXSTATUS,
+				 * Integer.parseInt(boxIdText.getText())); message.checkAndSetDeviceID();
+				 * message.setDeviceID(deviceIdText.getText());
+				 * 
+				 * message.publish(message);
+				 */
+				DownCabinetStateSyncMessage message = new DownCabinetStateSyncMessage(cabinetIdText.getText(),
+						Integer.parseInt(boxIdText.getText()));
 				message.setDeviceID(deviceIdText.getText());
-
-				message.publish(message);	
+				message.publish(message);
 			}
 		});
 	}
-	
+
 	private static void placeNotifyButtonType(JPanel panel, Font font) {
 		JButton notifyButton = new JButton("Notify");
 		notifyButton.setBounds(350, 550, 150, 25);
@@ -306,12 +316,12 @@ public class SimulationCabinetClient extends JFrame {
 
 		notifyButton.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {	
-				if(false == checkIdValidity()) {
+			public void actionPerformed(ActionEvent e) {
+				if (false == checkIdValidity()) {
 					JOptionPane.showMessageDialog(null, "Box-ID:" + boxIdText.getText() + " must be in[1,12]");
 					return;
 				}
-				
+
 				UpstreamCabinetMessage msg = new UpstreamCabinetMessage("asso");
 				CabinetBoxContainer box = new CabinetBoxContainer("HDG-00001238");
 
@@ -333,13 +343,13 @@ public class SimulationCabinetClient extends JFrame {
 
 				byte[] buffer = msg.encode();
 				if (mqttClient.client.isConnected()) {
-					String topic = "u/"+deviceIdText.getText();
+					String topic = "u/" + deviceIdText.getText();
 					mqttClient.sendPublish(topic, buffer);
 				}
 			}
 		});
 	}
-	
+
 	private static void placeComponents(JPanel panel) {
 
 		Font font = new Font(null, Font.TRUETYPE_FONT, 24);
@@ -354,16 +364,16 @@ public class SimulationCabinetClient extends JFrame {
 		placeBatteryID(panel, font);
 		placeBoxID(panel, font);
 
-		/*generate upstream message*/
+		/* generate upstream message */
 		placeAssoButtonType(panel, font);
 		placeDisassoButtonType(panel, font);
 		placeNotifyButtonType(panel, font);
-		
-		/*generate downstream message*/
+
+		/* generate downstream message */
 		placeOpenButtonType(panel, font);
 		placeSyncButtonType(panel, font);
 		placeRebootButtonType(panel, font);
-		
+
 		// create exchange button
 		placeBoxStatusChoose(panel, font);
 		placeBatteryExistChoose(panel, font);
@@ -372,13 +382,14 @@ public class SimulationCabinetClient extends JFrame {
 	public static void main(String[] args) {
 		MqttCfgUtil.loadProps();
 		SimulationCabinetClient client = new SimulationCabinetClient();
-/*		mqttClient = new NewExchangeMqttClient("tcp://121.40.109.91", "parry", "parry123", "DEV-3245662ER",
-				new SimulationCabinetMqttMsgCallback());
-*/
+		/*
+		 * mqttClient = new NewExchangeMqttClient("tcp://121.40.109.91", "parry",
+		 * "parry123", "DEV-3245662ER", new SimulationCabinetMqttMsgCallback());
+		 */
 		mqttClient = new NewExchangeMqttClient(MqttCfgUtil.getServerUri(), "parry", "parry123", "DEV-3245662ER",
 				new SimulationCabinetMqttMsgCallback());
 
 		mqttClient.connect();
-		//mqttClient.sendPublish("a/ddddddddddd", "testssssssssssss");
+		// mqttClient.sendPublish("a/ddddddddddd", "testssssssssssss");
 	}
 }

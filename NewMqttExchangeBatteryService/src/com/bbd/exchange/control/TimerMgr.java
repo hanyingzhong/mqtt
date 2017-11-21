@@ -33,16 +33,16 @@ public class TimerMgr {
 		return timerUsed;
 	}
 
-	static public ScheduledFuture<?> setTimer(BoxTimerMessage message, int seconds) {
+	public static ScheduledFuture<?> setTimer(BoxTimerMessage message, int seconds) {
 		BoxTimerTask task = new BoxTimerTask(message);
 
-		logger.info(message.toString());
+		logger.info("TimerMgr set timer : " + message.toString());
 		increase();
 		return newScheduledThreadPool.schedule(task, seconds * 1000, TimeUnit.MILLISECONDS);
 	}
 
-	public static ScheduledFuture<?> setTimer(Runnable command, int  delaySeconds) {
+	public static ScheduledFuture<?> setTimer(Runnable command, int delaySeconds) {
 		increase();
-		return newScheduledThreadPool.schedule(command, delaySeconds * 1000, TimeUnit.MILLISECONDS);		
+		return newScheduledThreadPool.schedule(command, delaySeconds * 1000, TimeUnit.MILLISECONDS);
 	}
 }

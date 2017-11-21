@@ -63,7 +63,7 @@ public class ExchangeServiceRequestMgr {
 		if (requestMgr.get(closed.getBoxID()) != null) {
 			return requestMgr.get(closed.getBoxID()).getAssociatedBox();
 		}
-		
+
 		return null;
 	}
 
@@ -78,14 +78,22 @@ public class ExchangeServiceRequestMgr {
 	void wait4EmptyBoxOpenedFailed(CabinetBoxObject empty) {
 		CabinetBoxObject full = getAssociatedBox(empty);
 		requestMgr.remove(empty.getBoxID());
-		requestMgr.remove(full.getBoxID());
+		if (full != null) {
+			requestMgr.remove(full.getBoxID());
+		}
 	}
 
 	void wait4EmptyBoxClosedFailed(CabinetBoxObject empty) {
 		CabinetBoxObject full = getAssociatedBox(empty);
-		full.killTimer(CabinetBoxObject.WAIT4EDOOROPENED);
+
+		if (full != null) {
+			full.killTimer(CabinetBoxObject.WAIT4EDOOROPENED);
+		}
 		requestMgr.remove(empty.getBoxID());
-		requestMgr.remove(full.getBoxID());
+
+		if (full != null) {
+			requestMgr.remove(full.getBoxID());
+		}
 	}
 
 	void wait4FullBoxOpenedFailed(CabinetBoxObject full) {
@@ -153,7 +161,7 @@ public class ExchangeServiceRequestMgr {
 		 * CabinetBoxObject.WAIT4EDOOROPENED), 15);
 		 * empty.getTimerMap().put(CabinetBoxObject.WAIT4EDOOROPENED, timer);
 		 */
-		empty.setTimer(CabinetBoxObject.WAIT4EDOOROPENED, 20);
+		empty.setTimer(CabinetBoxObject.WAIT4EDOOROPENED, 30);
 	}
 
 	void boxTimerExpire(CabinetBoxObject boxObj, String timer) {
@@ -161,6 +169,10 @@ public class ExchangeServiceRequestMgr {
 				&& timer.equals(CabinetBoxObject.WAIT4EDOOROPENED)) {
 			RemoteExchangeRequest request = getExchangeRequestMessage(boxObj);
 
+			logger.info("Box {}, timer {} expire.", boxObj.getBoxID(), timer);
+			if (request == null) {
+				return;
+			}
 			/* send exchange failed notify */
 			logger.info("request {} failed", request.getMessage().getRequestID());
 			sendEmptyExchangeFailedNotify(boxObj, "wait for empty box open-ack failed");
@@ -189,10 +201,12 @@ public class ExchangeServiceRequestMgr {
 			return;
 		}
 
+		logger.info("Box {}, timer {} expire." , boxObj.getBoxID(), timer);
+		logger.info("timer {}@{}, abnormal", timer, boxObj.getBoxState());
 	}
 
 	public void timerExpireHandling(BoxTimerMessage timer) {
-		logger.info("Timer expire : " + timer.toString());
+		logger.info("Timer expire++ : " + timer.toString());
 		CabinetBoxObject boxObj = CabinetMgrContainer.getInstance().getCabinetBox(timer.getCabinetID(),
 				Integer.parseInt(timer.getBoxId()) - 1);
 		if (boxObj != null) {
@@ -207,11 +221,11 @@ public class ExchangeServiceRequestMgr {
 		if (boxObj.getBoxState().equals(CabinetBoxObject.EMPTY_W4OPENED)) {
 			boxObj.newState(CabinetBoxObject.EMPTY_W4CLOSED);
 			boxObj.killTimer(CabinetBoxObject.WAIT4EDOOROPENED);
-			boxObj.setTimer(CabinetBoxObject.WAIT4EDOORCLOSED, 10);
+			boxObj.setTimer(CabinetBoxObject.WAIT4EDOORCLOSED, 30);
 		} else if (boxObj.getBoxState().equals(CabinetBoxObject.FULL_W4OPENED)) {
 			boxObj.newState(CabinetBoxObject.FULL_W4CLOSED);
 			boxObj.killTimer(CabinetBoxObject.WAIT4FDOOROPENED);
-			boxObj.setTimer(CabinetBoxObject.WAIT4FDOORCLOSED, 10);
+			boxObj.setTimer(CabinetBoxObject.WAIT4FDOORCLOSED, 30);
 		} else {
 			logger.error("abnormal state:" + boxObj.toString());
 		}
@@ -224,9 +238,11 @@ public class ExchangeServiceRequestMgr {
 		if (boxObj.getBoxState().equals(CabinetBoxObject.EMPTY_W4OPENED)) {
 			/* generate warning ....the box can't work.. */
 			wait4EmptyBoxOpenedFailed(boxObj);
+			boxObj.newState(CabinetBoxObject.OPENFAULT);
 		} else if (boxObj.getBoxState().equals(CabinetBoxObject.FULL_W4OPENED)) {
 			/* generate warning ....the box can't work.. */
 			wait4FullBoxOpenedFailed(boxObj);
+			boxObj.newState(CabinetBoxObject.OPENFAULT);
 		} else {
 			logger.error("abnormal state:" + boxObj.toString());
 		}
@@ -275,9 +291,16 @@ public class ExchangeServiceRequestMgr {
 					message.publish(message);
 
 					associatedBox.newState(CabinetBoxObject.FULL_W4OPENED);
-					associatedBox.setTimer(CabinetBoxObject.WAIT4FDOOROPENED, 10);
+					associatedBox.setTimer(CabinetBoxObject.WAIT4FDOOROPENED, 30);
 				}
 
+				return;
+			} else {
+				boxObj.killTimer(CabinetBoxObject.WAIT4EDOORCLOSED);
+				/* send exchange failed message */
+
+				sendExchangeSucceededNotify(boxObj, "Exchange failed, no battery....");
+				wait4EmptyBoxClosedFailed(boxObj);
 				return;
 			}
 		}

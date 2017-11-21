@@ -52,11 +52,11 @@ public class MqttMessageCallback implements MqttCallback {
 			return;
 		}
 		
-		if (CloudCommand.FROM_MOBILE == getMsgSource(topic)) {
+/*		if (CloudCommand.FROM_MOBILE == getMsgSource(topic)) {
 			System.out.println(topic + "-->" + message);
-			MobileMqttMessageQueue.getInstance().add(new MqttOriginalMessage(topic, message));
+			//MobileMqttMessageQueue.getInstance().add(new MqttOriginalMessage(topic, message));
 			return;
-		}
+		}*/
 		
 		if (CloudCommand.FROM_TIMERMGR == getMsgSource(topic)) {
 			System.out.println(topic + "-->" + message);
@@ -69,7 +69,6 @@ public class MqttMessageCallback implements MqttCallback {
 			ServiceMessageQueue.getInstance().add(new CommonServiceMessage(topic, message.toString()));
 			return;
 		}	
-		
 	}
 
 	@Override

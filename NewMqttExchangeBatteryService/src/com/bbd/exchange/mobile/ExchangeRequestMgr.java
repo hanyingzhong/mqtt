@@ -70,12 +70,12 @@ public class ExchangeRequestMgr {
 	}
 	
 	public void timerExpireHandling(BoxTimerMessage timer) {
-		logger.info("Timer expire : " + timer.toString());
+		logger.info("Timer expire-- : " + timer.toString());
 		CabinetBoxObject boxObj = CabinetMgrContainer.getInstance().getCabinetBox(timer.getCabinetID(),
 				Integer.parseInt(timer.getBoxId()) - 1);
 		if (boxObj != null) {
 			//boxObj.timerExipre(timer.getTimerID());
-			boxTimerExpire(boxObj, timer.getTimerID());
+			//boxTimerExpire(boxObj, timer.getTimerID());
 		}		
 	}
 }

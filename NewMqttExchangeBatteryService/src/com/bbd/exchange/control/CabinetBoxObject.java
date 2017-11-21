@@ -25,6 +25,7 @@ public class CabinetBoxObject implements ExchangeControlObject {
 	public static final String FULL_W4CLOSED = "full_w4close";
 	public static final String OPENED = "opened";
 	public static final String CLOSED = "closed";
+	public static final String OPENFAULT = "openfault";
 
 	public static final String STATUS = "status";
 	public static final String BATERYID = "batteryID";

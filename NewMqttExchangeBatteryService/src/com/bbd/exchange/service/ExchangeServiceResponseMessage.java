@@ -30,7 +30,7 @@ public class ExchangeServiceResponseMessage implements ServiceResponseMessage {
 		return null;
 	}
 
-	public static String encode2Json(ExchangeServiceResponseMessage messasge) {
+	public String encode2Json(ExchangeServiceResponseMessage messasge) {
         JSONObject jsonObject = new JSONObject(); 
         jsonObject.put("exchangeResponse", messasge);
         return jsonObject.toString();	

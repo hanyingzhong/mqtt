@@ -10,7 +10,7 @@ public class TimerTest {
 		BoxTimerTask task = new BoxTimerTask(new BoxTimerMessage("aaa","bbb","w4boxopened"));
 		newScheduledThreadPool.schedule(task, 1000, TimeUnit.MILLISECONDS);
 */
-		TimerMgr.setTimer(new BoxTimerMessage("HDG-00001238","1","ew4boxopened"), 2);
+		//TimerMgr.setTimer(new BoxTimerMessage("HDG-00001238","1","ew4boxopened"), 2);
 	}
 
 }

@@ -15,7 +15,6 @@ import com.bbd.exchange.mobile.ClientRequestMessage;
 import com.bbd.exchange.mqtt.CommonClientMqttMsgCallback;
 import com.bbd.exchange.mqtt.CommonExchangeMqttClient;
 import com.bbd.exchange.service.ExchangeRequestMessage;
-import com.bbd.exchange.service.ServiceMqttClient;
 import com.bbd.exchange.util.MqttCfgUtil;
 
 public class SimulationExchangeClient extends JFrame {
@@ -90,7 +89,8 @@ public class SimulationExchangeClient extends JFrame {
 		cabinetIdText = new JTextField(25);
 		cabinetIdText.setBounds(150, 150, 250, 30);
 		cabinetIdText.setFont(font);
-		cabinetIdText.setText("HDG-00001238");
+		//cabinetIdText.setText("HDG-00001238");
+		cabinetIdText.setText("EB000001");
 		panel.add(cabinetIdText);
 	}
 
@@ -118,12 +118,14 @@ public class SimulationExchangeClient extends JFrame {
 
 				ExchangeRequestMessage message = new ExchangeRequestMessage();
 				
-				message.setRequestID("18616996973");
-				message.setBatteryType("60V20A");
+				message.setRequestID(clientIdText.getText());
+				//message.setBatteryType("60V20A");
+				message.setBatteryType(batteryTypeText.getText());
 				//message.setCabinetID("HDG-00001238");
-				message.setCabinetID("EB000001");
-				message.setEmptyBoxID("1");
-				message.setFullEnergyBoxID("2");
+				//message.setCabinetID("EB000001");
+				message.setCabinetID(cabinetIdText.getText());
+				message.setEmptyBoxID("11");
+				message.setFullEnergyBoxID("12");
 				message.setNotifyTopic(message.receiveTopic());
 				newMqttClient.sendSubscribe(message.receiveTopic());
 				

@@ -30,7 +30,7 @@ public class HuandianguiService {
 	static String server = MqttCfgUtil.getServerUri();
 	static String username = "parry";
 	static char[] password = "parry123".toCharArray();
-	static String clientId = "Device-1545ASD222222";
+	static String clientId = "Device-1115ASD222222";
 	static int keepAlive = 60;
 
 	static Timer timer = new Timer();
@@ -72,7 +72,7 @@ public class HuandianguiService {
 				//client.subscribe("u/DEVICE-000011", 0);
 				//client.subscribe("d/DEVICE-000011", 0);
 				client.subscribe("a/#", 0);
-				// client.subscribe("ActiveMQ/Advisory/Connection");
+				//client.subscribe("ActiveMQ/Advisory/Connection");
 				client.subscribe("b/DEVICE-000011/will");
 				client.subscribe("timer/#", 0);
 				client.subscribe("exchange/#", 0);
@@ -214,7 +214,7 @@ public class HuandianguiService {
 
 		System.out.println("HelloWorld.");
 		new HandlingOriginalMqttMessage().start();
-		new MobileMqttMessageHandling().start();
+		//new MobileMqttMessageHandling().start();
 		new ServiceMessageHandling().start();
 
 		while (true) {
