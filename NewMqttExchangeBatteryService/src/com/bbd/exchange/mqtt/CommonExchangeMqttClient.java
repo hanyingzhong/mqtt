@@ -75,6 +75,20 @@ public class CommonExchangeMqttClient {
 		}
 	}
 
+	public void sendPublish(String topic, byte[] message, int qos) {
+		if (client.isConnected() == false) {
+			connect();
+		}
+
+		try {
+			client.publish(topic, message, qos, false);
+		} catch (MqttPersistenceException e) {
+			e.printStackTrace();
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public CommonExchangeMqttClient(String server, String username, String string, String clientId,
 			Set<String> subscribeTopic) {
 		super();

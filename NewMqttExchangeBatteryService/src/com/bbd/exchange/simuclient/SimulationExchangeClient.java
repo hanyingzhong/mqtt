@@ -124,8 +124,8 @@ public class SimulationExchangeClient extends JFrame {
 				//message.setCabinetID("HDG-00001238");
 				//message.setCabinetID("EB000001");
 				message.setCabinetID(cabinetIdText.getText());
-				message.setEmptyBoxID("11");
-				message.setFullEnergyBoxID("12");
+				message.setEmptyBoxID("2");
+				message.setFullEnergyBoxID("1");
 				message.setNotifyTopic(message.receiveTopic());
 				newMqttClient.sendSubscribe(message.receiveTopic());
 				

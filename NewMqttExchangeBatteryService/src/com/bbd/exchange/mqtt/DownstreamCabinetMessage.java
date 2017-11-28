@@ -1,21 +1,35 @@
 package com.bbd.exchange.mqtt;
 
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.bbd.exchange.control.DeviceMgrContainer;
-import com.bbd.exchange.mobile.MobileMqttClientSimnulation;
-import com.bbd.exchange.simuclient.ExchangeMqttClient;
 import com.bbd.exchange.util.MqttCfgUtil;
 import com.bbd.exchange.util.NumberUtil;
 
 public class DownstreamCabinetMessage implements ExchangeMqttMessage {
-	static MobileMqttClientSimnulation mqttClient = MobileMqttClientSimnulation.getInstance();
+    private static final Logger logger = LoggerFactory.getLogger(DownstreamCabinetMessage.class);
+
+/*    static MobileMqttClientSimnulation mqttClient = MobileMqttClientSimnulation.getInstance();
 
 	static {
 		//ExchangeMqttClient exchangeMqttClient = new ExchangeMqttClient("tcp://121.40.109.91", "parry","parry123", "SIMU-DDER");
 		ExchangeMqttClient exchangeMqttClient = new ExchangeMqttClient(MqttCfgUtil.getServerUri(), "parry","parry123", "SIMU-DDER");
 		mqttClient.setMqttClient(exchangeMqttClient);
+	}*/
+	
+	static CommonExchangeMqttClient newMqttClient;
+
+	static {
+		newMqttClient = new CommonExchangeMqttClient(MqttCfgUtil.getServerUri(), "parry", "parry123",
+				"DS-CLIENT002R", null);
+
+		try {
+			newMqttClient.initClient(new CommonClientMqttMsgCallback(newMqttClient));
+			newMqttClient.connect();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	String deviceID;
@@ -38,7 +52,7 @@ public class DownstreamCabinetMessage implements ExchangeMqttMessage {
 	}
 
 	public boolean publish(String topic, String  message) {
-		if(false == mqttClient.getMqttClient().getClient().isConnected()) {
+/*		if(false == mqttClient.getMqttClient().getClient().isConnected()) {
 			mqttClient.connect();
 		}
 		
@@ -48,24 +62,29 @@ public class DownstreamCabinetMessage implements ExchangeMqttMessage {
 			e.printStackTrace();
 		} catch (MqttException e) {
 			e.printStackTrace();
-		}
+		}*/
+		newMqttClient.sendPublish(topic, message);
+		logger.info("publish: {}, {}", topic, message);
 		return true;	
 	}
 	
 	public boolean publish(DownstreamCabinetMessage message) {
 		byte[] pubilshMsg = message.encode();
 		
-		if(false == mqttClient.getMqttClient().getClient().isConnected()) {
+/*		if(false == mqttClient.getMqttClient().getClient().isConnected()) {
 			mqttClient.connect();
 		}
 		
 		try {
 			mqttClient.getMqttClient().getClient().publish(message.encodeTopic(), pubilshMsg, 0, false);
+			logger.info("publish: {}, {}", message.encodeTopic(), NumberUtil.bytesToHexString(pubilshMsg));
 		} catch (MqttPersistenceException e) {
 			e.printStackTrace();
 		} catch (MqttException e) {
 			e.printStackTrace();
-		}
+		}*/
+		newMqttClient.sendPublish(message.encodeTopic(), pubilshMsg, 0);
+		logger.info("==publish: {}, {}", message.encodeTopic(), NumberUtil.bytesToHexString(pubilshMsg));
 		return true;
 	}
 	

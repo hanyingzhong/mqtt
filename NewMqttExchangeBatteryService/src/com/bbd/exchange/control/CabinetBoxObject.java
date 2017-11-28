@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bbd.exchange.mqtt.CabinetBoxContainer;
+import com.bbd.exchange.service.ExchangeTimerLengthMgr;
 import com.bbd.exchange.util.RedisUtils;
 
 import redis.clients.jedis.Jedis;
@@ -25,7 +26,7 @@ public class CabinetBoxObject implements ExchangeControlObject {
 	public static final String FULL_W4CLOSED = "full_w4close";
 	public static final String OPENED = "opened";
 	public static final String CLOSED = "closed";
-	public static final String OPENFAULT = "openfault";
+	public static final String OPENFAULT = "open-fault";
 
 	public static final String STATUS = "status";
 	public static final String BATERYID = "batteryID";
@@ -121,13 +122,24 @@ public class CabinetBoxObject implements ExchangeControlObject {
 		logger.info("{}, new state : {}", boxID, state);
 	}
 
-	public void setTimer(String timerID, int timerLength) {
-		BoxTimerMessage boxTimer = new BoxTimerMessage(getCabinetID(), Integer.toString(getID() + 1),
-				timerID);
+	public void setTimer(String timerID) {
+		BoxTimerMessage boxTimer = new BoxTimerMessage(getCabinetID(), Integer.toString(getID() + 1), timerID);
 		BoxTimerTask task = new BoxTimerTask(boxTimer);
-		
+		int timerLength = ExchangeTimerLengthMgr.getTimerLength(timerID);
+
 		ScheduledFuture<?> result = TimerMgr.setTimer(task, timerLength);
-		if(result != null) {
+		if (result != null) {
+			getTimerMap().put(timerID, result);
+			logger.info("{}, Set timer : {}, " + timerLength, getBoxID(), timerID);
+		}
+	}
+
+	public void setTimer(String timerID, int timerLength) {
+		BoxTimerMessage boxTimer = new BoxTimerMessage(getCabinetID(), Integer.toString(getID() + 1), timerID);
+		BoxTimerTask task = new BoxTimerTask(boxTimer);
+
+		ScheduledFuture<?> result = TimerMgr.setTimer(task, timerLength);
+		if (result != null) {
 			getTimerMap().put(timerID, result);
 			logger.info("{}, Set timer : {}", getBoxID(), timerID);
 		}

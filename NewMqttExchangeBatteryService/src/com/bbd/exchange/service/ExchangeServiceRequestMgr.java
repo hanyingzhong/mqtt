@@ -11,6 +11,7 @@ import com.bbd.exchange.control.CabinetMgrContainer;
 import com.bbd.exchange.mqtt.CabinetBoxContainer;
 import com.bbd.exchange.mqtt.CommonClientMqttMsgCallback;
 import com.bbd.exchange.mqtt.CommonExchangeMqttClient;
+import com.bbd.exchange.mqtt.DownCabinetStateSyncMessage;
 import com.bbd.exchange.mqtt.DownstreamCabinetMessage;
 import com.bbd.exchange.mqtt.InteractionCommand;
 import com.bbd.exchange.mqtt.UpstreamCabinetMessage;
@@ -155,13 +156,7 @@ public class ExchangeServiceRequestMgr {
 		full.newState(CabinetBoxObject.FULL_W4OPENED);
 
 		/* set timer */
-		/*
-		 * ScheduledFuture<?> timer = TimerMgr.setTimer(new
-		 * BoxTimerMessage(empty.getCabinetID(), Integer.toString(empty.getID() + 1),
-		 * CabinetBoxObject.WAIT4EDOOROPENED), 15);
-		 * empty.getTimerMap().put(CabinetBoxObject.WAIT4EDOOROPENED, timer);
-		 */
-		empty.setTimer(CabinetBoxObject.WAIT4EDOOROPENED, 30);
+		empty.setTimer(CabinetBoxObject.WAIT4EDOOROPENED);
 	}
 
 	void boxTimerExpire(CabinetBoxObject boxObj, String timer) {
@@ -215,17 +210,27 @@ public class ExchangeServiceRequestMgr {
 		}
 	}
 
+	void sendSynBoxInfoMessage(CabinetBoxObject boxObj){
+		DownCabinetStateSyncMessage message = new DownCabinetStateSyncMessage(boxObj.getCabinetID(),
+				Integer.parseInt(boxObj.getBoxID())+1);
+		if(false == message.checkAndSetDeviceID()) {
+			logger.error("send Downstream Sync message to {} failed", boxObj.getBoxID());
+			return;
+		}
+		message.publish(message);	
+	}
+	
 	public void notifyDoorOpenedSucceed(CabinetBoxObject boxObj, CabinetBoxContainer ele) {
 		logger.info("{}@{} received door open succeeded message", boxObj.getBoxID(), boxObj.getBoxState());
 
 		if (boxObj.getBoxState().equals(CabinetBoxObject.EMPTY_W4OPENED)) {
 			boxObj.newState(CabinetBoxObject.EMPTY_W4CLOSED);
 			boxObj.killTimer(CabinetBoxObject.WAIT4EDOOROPENED);
-			boxObj.setTimer(CabinetBoxObject.WAIT4EDOORCLOSED, 30);
+			boxObj.setTimer(CabinetBoxObject.WAIT4EDOORCLOSED);
 		} else if (boxObj.getBoxState().equals(CabinetBoxObject.FULL_W4OPENED)) {
 			boxObj.newState(CabinetBoxObject.FULL_W4CLOSED);
 			boxObj.killTimer(CabinetBoxObject.WAIT4FDOOROPENED);
-			boxObj.setTimer(CabinetBoxObject.WAIT4FDOORCLOSED, 30);
+			boxObj.setTimer(CabinetBoxObject.WAIT4FDOORCLOSED);
 		} else {
 			logger.error("abnormal state:" + boxObj.toString());
 		}
@@ -238,10 +243,12 @@ public class ExchangeServiceRequestMgr {
 		if (boxObj.getBoxState().equals(CabinetBoxObject.EMPTY_W4OPENED)) {
 			/* generate warning ....the box can't work.. */
 			wait4EmptyBoxOpenedFailed(boxObj);
+			boxObj.killTimer(CabinetBoxObject.WAIT4EDOOROPENED);
 			boxObj.newState(CabinetBoxObject.OPENFAULT);
 		} else if (boxObj.getBoxState().equals(CabinetBoxObject.FULL_W4OPENED)) {
 			/* generate warning ....the box can't work.. */
 			wait4FullBoxOpenedFailed(boxObj);
+			boxObj.killTimer(CabinetBoxObject.WAIT4FDOOROPENED);
 			boxObj.newState(CabinetBoxObject.OPENFAULT);
 		} else {
 			logger.error("abnormal state:" + boxObj.toString());
@@ -291,7 +298,7 @@ public class ExchangeServiceRequestMgr {
 					message.publish(message);
 
 					associatedBox.newState(CabinetBoxObject.FULL_W4OPENED);
-					associatedBox.setTimer(CabinetBoxObject.WAIT4FDOOROPENED, 30);
+					associatedBox.setTimer(CabinetBoxObject.WAIT4FDOOROPENED);
 				}
 
 				return;

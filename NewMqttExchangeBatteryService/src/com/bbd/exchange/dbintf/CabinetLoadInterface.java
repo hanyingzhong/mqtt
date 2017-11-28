@@ -6,6 +6,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bbd.exchange.control.CabinetBoxObject;
 import com.bbd.exchange.control.CabinetControlObject;
 import com.bbd.exchange.control.CabinetMgrContainer;
 import com.bbd.exchange.control.NotifyCabinetMessageHandling;
@@ -90,26 +91,33 @@ public class CabinetLoadInterface {
 		return cabinet;
 	}
 
+	public static void storeCabinetAttr2Redis(String box, String attr, String value) {
+		Jedis jedis = RedisUtils.getJedis();
+		jedis.select(CabinetControlObject.redisStoreAera);
+		jedis.hset(box, attr, value);
+		RedisUtils.returnResource(jedis);
+	}
+
 	static void sendDownRebootMessage(String cabinetID, String deviceID) {
 		DownRebootCabinetMessage reboot = new DownRebootCabinetMessage(cabinetID, 0);
-		
+
 		reboot.setDeviceID(deviceID);
 		reboot.publish(reboot);
 		logger.info("send down Reboot message to {}/{}", deviceID, cabinetID);
 	}
-	
+
 	static void sendDownSyncMessage(String cabinetID, String deviceID) {
 		DownCabinetStateSyncMessage sync = new DownCabinetStateSyncMessage(cabinetID, 0);
-		
+
 		sync.setDeviceID(deviceID);
 		sync.publish(sync);
 		logger.info("send down sync message to {}/{}", deviceID, cabinetID);
 	}
-	
-	/*if the record number is huge...the function will delay......*/
+
+	/* if the record number is huge...the function will delay...... */
 	static void loadFromRedis() {
 		Set<String> cabinets = getCabinetKeysFromRedis();
-		
+
 		logger.info("====Loading cabinet:===============================");
 		for (String cabinet : cabinets) {
 			Map<String, String> attr = getCabinetInfoFromRedis(cabinet);
@@ -123,11 +131,12 @@ public class CabinetLoadInterface {
 				}
 
 				createCabinet(cabinet, defaultBoxNum);
-				if(deviceID != null) {
+				if (deviceID != null) {
+					storeCabinetAttr2Redis(cabinet, "state", "unknown");
 					sendDownRebootMessage(cabinet, deviceID);
-					//sendDownSyncMessage(cabinet, deviceID);
+					// sendDownSyncMessage(cabinet, deviceID);
 				}
-					
+
 				logger.info(cabinet + " : " + attr);
 			} else {
 				System.out.println(cabinet + ":" + "invalid");

@@ -12,13 +12,13 @@ import com.bbd.exchange.util.PropertyUtil;
 
 public class BoxTimerTask implements Runnable {
 	private static final Logger logger = LoggerFactory.getLogger(PropertyUtil.class);
-	static MobileMqttClientSimnulation mqttClient = MobileMqttClientSimnulation.getInstance();
+/*	static MobileMqttClientSimnulation mqttClient = MobileMqttClientSimnulation.getInstance();
 
 	static {
 		ExchangeMqttClient exchangeMqttClient = new ExchangeMqttClient(MqttCfgUtil.getServerUri(), "parry", "parry123",
 				"SIMU-BOX-TIMER");
 		mqttClient.setMqttClient(exchangeMqttClient);
-	}
+	}*/
 
 	static CommonExchangeMqttClient newMqttClient;
 
