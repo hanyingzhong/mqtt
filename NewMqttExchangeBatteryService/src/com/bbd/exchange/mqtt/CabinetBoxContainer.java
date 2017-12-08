@@ -43,7 +43,7 @@ public class CabinetBoxContainer {
 		bytesArrayCopy(boxInfo.getBytes(), 0, msg, pos, boxInfo.length());
 		pos += boxInfo.length();
 
-		//System.out.println(NumberUtil.bytesToHexString(msg));
+		// System.out.println(NumberUtil.bytesToHexString(msg));
 
 		byte[] retMsg = new byte[pos];
 		bytesArrayCopy(msg, 0, retMsg, 0, pos);
@@ -51,8 +51,9 @@ public class CabinetBoxContainer {
 	}
 
 	void decideDoorStatus() {
-		if ((responseCode == InteractionCommand.RESCODE_OPENED)
-				|| (responseCode == InteractionCommand.RESCODE_OPENSUCC)) {
+		if ((responseCode == InteractionCommand.RESCODE_OPENED) 
+		 || (responseCode == InteractionCommand.RESCODE_OPENSUCC)
+		 || (responseCode == InteractionCommand.RESCODE_W4CLOSEDEXPIRE)) {
 			doorOpened = true;
 		} else {
 			doorOpened = false;
@@ -98,7 +99,7 @@ public class CabinetBoxContainer {
 	public String encodeBoxInfo() {
 		StringBuilder stringBuilder = new StringBuilder();
 
-		//stringBuilder.append(doorOpened ? "1" : "0");
+		// stringBuilder.append(doorOpened ? "1" : "0");
 		stringBuilder.append(responseCode);
 		stringBuilder.append(",");
 		/*

@@ -68,8 +68,10 @@ public class ExchangeServiceRequestMgr {
 		return null;
 	}
 
-	public void removeRequestInstance(CabinetBoxObject closed) {
-		requestMgr.remove(closed.getBoxID());
+	public void removeRequestInstance(CabinetBoxObject box) {
+		if (box != null) {
+			requestMgr.remove(box.getBoxID());
+		}
 	}
 
 	RemoteExchangeRequest getExchangeRequestMessage(CabinetBoxObject boxObj) {
@@ -103,7 +105,7 @@ public class ExchangeServiceRequestMgr {
 	}
 
 	@SuppressWarnings("static-access")
-	void sendEmptyExchangeFailedNotify(CabinetBoxObject empty, int errID) {
+	void sendExchangeFailedNotify(CabinetBoxObject empty, int errID) {
 		RemoteExchangeRequest request = getExchangeRequestMessage(empty);
 		ExchangeServiceResponseMessage response = new ExchangeServiceResponseMessage(
 				request.getMessage().getRequestID(), errID);
@@ -112,7 +114,7 @@ public class ExchangeServiceRequestMgr {
 		mqttClient.sendPublish(request.getMessage().getNotifyTopic(), response.encode2Json(response));
 	}
 
-	void sendExchangeSucceededNotify(CabinetBoxObject full, String result) {
+	void sendExchangeSucceededNotify(CabinetBoxObject full) {
 		RemoteExchangeRequest request = getExchangeRequestMessage(full);
 		ExchangeServiceResponseMessage response = new ExchangeServiceResponseMessage(
 				request.getMessage().getRequestID(), ExchangeServiceResponseMessage.EC_EXCHANGE_SUCCEEDED);
@@ -122,14 +124,16 @@ public class ExchangeServiceRequestMgr {
 	}
 
 	public void exchangeRequestMessageHandling(ExchangeRequestMessage message) {
-/*		CabinetBoxObject empty = CabinetMgrContainer.getInstance().getCabinetBox(message.getCabinetID(),
-				Integer.parseInt(message.getEmptyBoxID()) - 1);
-		CabinetBoxObject full = CabinetMgrContainer.getInstance().getCabinetBox(message.getCabinetID(),
-				Integer.parseInt(message.getFullEnergyBoxID()) - 1);
-*/
+		/*
+		 * CabinetBoxObject empty =
+		 * CabinetMgrContainer.getInstance().getCabinetBox(message.getCabinetID(),
+		 * Integer.parseInt(message.getEmptyBoxID()) - 1); CabinetBoxObject full =
+		 * CabinetMgrContainer.getInstance().getCabinetBox(message.getCabinetID(),
+		 * Integer.parseInt(message.getFullEnergyBoxID()) - 1);
+		 */
 		CabinetBoxObject empty = CabinetMgrContainer.getInstance().getCabinetBox(message.getEmptyBoxID());
 		CabinetBoxObject full = CabinetMgrContainer.getInstance().getCabinetBox(message.getFullEnergyBoxID());
-				
+
 		if (empty == null) {
 			logger.info(message.getEmptyBoxID() + " is not configured.");
 			return;
@@ -172,7 +176,7 @@ public class ExchangeServiceRequestMgr {
 			}
 			/* send exchange failed notify */
 			logger.info("request {} failed", request.getMessage().getRequestID());
-			sendEmptyExchangeFailedNotify(boxObj, ExchangeServiceResponseMessage.EC_EMPTY_BOX_CANNOT_OPENED);
+			sendExchangeFailedNotify(boxObj, ExchangeServiceResponseMessage.EC_EMPTY_BOX_CANNOT_OPENED);
 			wait4EmptyBoxOpenedFailed(boxObj);
 			return;
 		}
@@ -183,7 +187,7 @@ public class ExchangeServiceRequestMgr {
 
 			/* send exchange failed notify */
 			logger.info("request {} failed", request.getMessage().getRequestID());
-			sendEmptyExchangeFailedNotify(boxObj, ExchangeServiceResponseMessage.EC_FULL_BOX_CANNOT_OPENED);
+			sendExchangeFailedNotify(boxObj, ExchangeServiceResponseMessage.EC_FULL_BOX_CANNOT_OPENED);
 			wait4EmptyBoxOpenedFailed(boxObj);
 			return;
 		}
@@ -194,11 +198,23 @@ public class ExchangeServiceRequestMgr {
 
 			/* send exchange failed notify */
 			logger.info("request {} failed", request.getMessage().getRequestID());
+			sendExchangeFailedNotify(boxObj, ExchangeServiceResponseMessage.EC_W4_EMPTY_BOX_CLOSED_EXPIRE);
 			wait4EmptyBoxClosedFailed(boxObj);
 			return;
 		}
 
-		logger.info("Box {}, timer {} expire." , boxObj.getBoxID(), timer);
+		if (boxObj.getBoxState().equals(CabinetBoxObject.FULL_W4CLOSED)
+				&& timer.equals(CabinetBoxObject.WAIT4FDOORCLOSED)) {
+			RemoteExchangeRequest request = getExchangeRequestMessage(boxObj);
+
+			/* send exchange failed notify */
+			logger.info("request {} failed", request.getMessage().getRequestID());
+			sendExchangeFailedNotify(boxObj, ExchangeServiceResponseMessage.EC_W4_FULL_BOX_CLOSED_EXPIRE);
+			wait4EmptyBoxClosedFailed(boxObj);
+			return;
+		}
+
+		logger.info("Box {}, timer {} expire.", boxObj.getBoxID(), timer);
 		logger.info("timer {}@{}, abnormal", timer, boxObj.getBoxState());
 	}
 
@@ -212,16 +228,16 @@ public class ExchangeServiceRequestMgr {
 		}
 	}
 
-	void sendSynBoxInfoMessage(CabinetBoxObject boxObj){
+	void sendSynBoxInfoMessage(CabinetBoxObject boxObj) {
 		DownCabinetStateSyncMessage message = new DownCabinetStateSyncMessage(boxObj.getCabinetID(),
-				Integer.parseInt(boxObj.getBoxID())+1);
-		if(false == message.checkAndSetDeviceID()) {
+				Integer.parseInt(boxObj.getBoxID()) + 1);
+		if (false == message.checkAndSetDeviceID()) {
 			logger.error("send Downstream Sync message to {} failed", boxObj.getBoxID());
 			return;
 		}
-		message.publish(message);	
+		message.publish(message);
 	}
-	
+
 	public void notifyDoorOpenedSucceed(CabinetBoxObject boxObj, CabinetBoxContainer ele) {
 		logger.info("{}@{} received door open succeeded message", boxObj.getBoxID(), boxObj.getBoxState());
 
@@ -261,10 +277,22 @@ public class ExchangeServiceRequestMgr {
 		logger.info("{}@{} received W4ClosedExpire message", boxObj.getBoxID(), boxObj.getBoxState());
 
 		if (boxObj.getBoxState().equals(CabinetBoxObject.EMPTY_W4CLOSED)) {
+			boxObj.killTimer(CabinetBoxObject.WAIT4EDOORCLOSED);
+			sendExchangeFailedNotify(boxObj, ExchangeServiceResponseMessage.EC_W4_EMPTY_BOX_CLOSED_EXPIRE);
+			boxObj.newState(CabinetBoxObject.IDLE);// should not be IDLE
+			CabinetBoxObject associatedBox = getAssociatedBox(boxObj);
+
+			removeRequestInstance(boxObj);
+			removeRequestInstance(associatedBox);
 			return;
 		}
 
 		if (boxObj.getBoxState().equals(CabinetBoxObject.FULL_W4CLOSED)) {
+			boxObj.killTimer(CabinetBoxObject.WAIT4FDOORCLOSED);
+			sendExchangeFailedNotify(boxObj, ExchangeServiceResponseMessage.EC_W4_FULL_BOX_CLOSED_EXPIRE);
+
+			boxObj.newState(CabinetBoxObject.IDLE);// should not be IDLE
+			removeRequestInstance(boxObj);
 			return;
 		}
 
@@ -308,7 +336,7 @@ public class ExchangeServiceRequestMgr {
 				boxObj.killTimer(CabinetBoxObject.WAIT4EDOORCLOSED);
 				/* send exchange failed message */
 
-				sendEmptyExchangeFailedNotify(boxObj, ExchangeServiceResponseMessage.EC_EMPTY_BOX_RTN_WITHOUT_BATTERY);
+				sendExchangeFailedNotify(boxObj, ExchangeServiceResponseMessage.EC_EMPTY_BOX_RTN_WITHOUT_BATTERY);
 				wait4EmptyBoxClosedFailed(boxObj);
 				return;
 			}
@@ -321,13 +349,13 @@ public class ExchangeServiceRequestMgr {
 				boxObj.killTimer(CabinetBoxObject.WAIT4FDOORCLOSED);
 				/* send exchange succeed message */
 
-				sendExchangeSucceededNotify(boxObj, "Exchange succeeded");
+				sendExchangeSucceededNotify(boxObj);
 				removeRequestInstance(boxObj);
 			} else {
 				/* exception generate warn...? */
 				boxObj.newState(CabinetBoxObject.IDLE);
 				boxObj.killTimer(CabinetBoxObject.WAIT4FDOORCLOSED);
-				sendExchangeSucceededNotify(boxObj, "Exchange failed, battery should not exist.");
+				sendExchangeFailedNotify(boxObj, ExchangeServiceResponseMessage.EC_FULL_BOX_RTN_WITH_BATTERY);
 			}
 		}
 
