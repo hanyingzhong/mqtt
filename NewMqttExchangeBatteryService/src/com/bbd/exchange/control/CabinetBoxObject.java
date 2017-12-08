@@ -114,7 +114,7 @@ public class CabinetBoxObject implements ExchangeControlObject {
 	}
 
 	public String toString() {
-		return boxID + "£º" + map.toString();
+		return boxID + ":" + map.toString();
 	}
 
 	public void newState(String state) {

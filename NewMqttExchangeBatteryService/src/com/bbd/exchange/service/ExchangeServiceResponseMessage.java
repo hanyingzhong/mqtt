@@ -1,5 +1,7 @@
 package com.bbd.exchange.service;
 
+import java.lang.reflect.Array;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,20 +11,44 @@ public class ExchangeServiceResponseMessage implements ServiceResponseMessage {
 	private static final Logger logger = LoggerFactory.getLogger(ExchangeServiceResponseMessage.class);
 
 	String requestID;
-	String cabinetID;
-	String notifyTopic;
+	int errcodeID;
 	String result;
-	
-	public ExchangeServiceResponseMessage(){
-		
+
+	public final static int EC_EXCHANGE_SUCCEEDED = 0x00;
+	public final static int EC_EMPTY_BOX_CANNOT_OPENED = 0x01;
+	public final static int EC_FULL_BOX_CANNOT_OPENED = 0x02;
+	public final static int EC_W4_EMPTY_BOX_CLOSED_EXPIRE = 0x03;
+	public final static int EC_W4_FULL_BOX_CLOSED_EXPIRE = 0x04;
+	public final static int EC_EMPTY_BOX_RTN_WITHOUT_BATTERY = 0x05;
+	public final static int EC_FULL_BOX_RTN_WITH_BATTERY = 0x06;
+	public final static int EC_MAX_CODE = 0x07;
+	static String errcodeDesc[] = new String[EC_MAX_CODE];
+	static {
+		errcodeDesc[EC_EXCHANGE_SUCCEEDED] = "exchange succeeded";
+		errcodeDesc[EC_EMPTY_BOX_CANNOT_OPENED] = "wait empty box open failed";
+		errcodeDesc[EC_FULL_BOX_CANNOT_OPENED] = "wait full box open failed";
+		errcodeDesc[EC_W4_EMPTY_BOX_CLOSED_EXPIRE] = "wait empty box open failed";
+		errcodeDesc[EC_W4_FULL_BOX_CLOSED_EXPIRE] = "wait full box open failed";
+		errcodeDesc[EC_EMPTY_BOX_RTN_WITHOUT_BATTERY] = "empty box closed without battery";
+		errcodeDesc[EC_FULL_BOX_RTN_WITH_BATTERY] = "full box closed with battery";
 	}
-	
-	public ExchangeServiceResponseMessage(String requestID, String cabinetID, String notifyTopic, String result) {
+
+	String getErrorCodeString(int errcode) {
+		if (errcode >= 0 && errcode < EC_MAX_CODE) {
+			return errcodeDesc[errcode];
+		}
+		return "unknown errcode";
+	}
+
+	public ExchangeServiceResponseMessage() {
+
+	}
+
+	public ExchangeServiceResponseMessage(String requestID, int errcodeID) {
 		super();
 		this.requestID = requestID;
-		this.cabinetID = cabinetID;
-		this.notifyTopic = notifyTopic;
-		this.result = result;
+		this.errcodeID = errcodeID;
+		result = getErrorCodeString(errcodeID);
 	}
 
 	@Override
@@ -31,9 +57,9 @@ public class ExchangeServiceResponseMessage implements ServiceResponseMessage {
 	}
 
 	public String encode2Json(ExchangeServiceResponseMessage messasge) {
-        JSONObject jsonObject = new JSONObject(); 
-        jsonObject.put("exchangeResponse", messasge);
-        return jsonObject.toString();	
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("exchangeResponse", messasge);
+		return jsonObject.toString();
 	}
 
 	public String getRequestID() {
@@ -42,22 +68,6 @@ public class ExchangeServiceResponseMessage implements ServiceResponseMessage {
 
 	public void setRequestID(String requestID) {
 		this.requestID = requestID;
-	}
-
-	public String getCabinetID() {
-		return cabinetID;
-	}
-
-	public void setCabinetID(String cabinetID) {
-		this.cabinetID = cabinetID;
-	}
-
-	public String getNotifyTopic() {
-		return notifyTopic;
-	}
-
-	public void setNotifyTopic(String notifyTopic) {
-		this.notifyTopic = notifyTopic;
 	}
 
 	public String getResult() {
@@ -71,5 +81,13 @@ public class ExchangeServiceResponseMessage implements ServiceResponseMessage {
 	public static Logger getLogger() {
 		return logger;
 	}
-	
+
+	public int getErrcodeID() {
+		return errcodeID;
+	}
+
+	public void setErrcodeID(int errcodeID) {
+		this.errcodeID = errcodeID;
+	}
+
 }

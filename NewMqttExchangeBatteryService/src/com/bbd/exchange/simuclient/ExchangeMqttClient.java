@@ -48,6 +48,14 @@ public class ExchangeMqttClient {
 		}
 	}
 
+	void sendSubscribe(String topic) {
+		try {
+			client.subscribe(topic);
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public void sendPublish(String message) {
 		if (client.isConnected() == false) {
 			try {

@@ -49,8 +49,11 @@ public class ExchangeRequestMgr {
 	}
 	
 	public void exchangeRequestMessageHandling(ExchangeRequestMessage message) {
-		CabinetBoxObject empty = CabinetMgrContainer.getInstance().getCabinetBox(message.getCabinetID(), Integer.parseInt(message.getEmptyBoxID()) - 1); 
+/*		CabinetBoxObject empty = CabinetMgrContainer.getInstance().getCabinetBox(message.getCabinetID(), Integer.parseInt(message.getEmptyBoxID()) - 1); 
 		CabinetBoxObject full = CabinetMgrContainer.getInstance().getCabinetBox(message.getCabinetID(), Integer.parseInt(message.getFullEnergyBoxID()) - 1); 
+*/
+		CabinetBoxObject empty = CabinetMgrContainer.getInstance().getCabinetBox(message.getEmptyBoxID());
+		CabinetBoxObject full = CabinetMgrContainer.getInstance().getCabinetBox(message.getFullEnergyBoxID());
 
 		if(empty == null) {
 			logger.info(message.getEmptyBoxID() + " is not configured.");

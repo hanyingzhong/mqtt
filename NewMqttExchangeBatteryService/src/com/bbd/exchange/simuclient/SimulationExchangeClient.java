@@ -121,13 +121,13 @@ public class SimulationExchangeClient extends JFrame {
 				message.setRequestID(clientIdText.getText());
 				//message.setBatteryType("60V20A");
 				message.setBatteryType(batteryTypeText.getText());
-				//message.setCabinetID("HDG-00001238");
+				message.setCabinetID("HDG-00001238");
 				//message.setCabinetID("EB000001");
-				message.setCabinetID(cabinetIdText.getText());
-				message.setEmptyBoxID("2");
-				message.setFullEnergyBoxID("1");
+				//message.setCabinetID(cabinetIdText.getText());
+				message.setEmptyBoxID(cabinetIdText.getText()+"/2");
+				message.setFullEnergyBoxID(cabinetIdText.getText()+"/1");
 				message.setNotifyTopic(message.receiveTopic());
-				newMqttClient.sendSubscribe(message.receiveTopic());
+				//newMqttClient.sendSubscribe(message.receiveTopic());
 				
 				String exchange = ExchangeRequestMessage.encode2Json(message);
 				
@@ -186,5 +186,6 @@ public class SimulationExchangeClient extends JFrame {
 		mqttClient = new ExchangeMqttClient(MqttCfgUtil.getServerUri(), "parry", "parry123", "DEV-1545662ER");
 
 		mqttClient.connect();
+		mqttClient.sendSubscribe("exchangeResponse/#");
 	}
 }
