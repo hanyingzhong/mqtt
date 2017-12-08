@@ -9,7 +9,7 @@ import com.bbd.exchange.platform.RedisIntf;
 
 public class CabinetObject {
 	private static final Logger logger = LoggerFactory.getLogger(CabinetObject.class);
-	
+
 	final static String NUMOFBOX = "boxnum";
 	final static String DEFAULT_NUMOFBOX = "12";
 
@@ -40,12 +40,18 @@ public class CabinetObject {
 		return boxMgr;
 	}
 
+	public static void updateCabinetBox(CabinetBoxManager boxMgr) {
+		Map<String, String> map = RedisIntf.getMap(CabinetBoxManager.redisArea, boxMgr.getBoxID());
+
+		boxMgr.getBox().setMap(map);
+	}
+
 	public CabinetBoxManager getBoxObject(int ID) {
 		int idx = getArrayIdx(ID);
 		if (boxObjs[idx] != null) {
 			return boxObjs[idx];
 		}
-		
+
 		String boxID = getBoxID(ID);
 		boxObjs[idx] = createCabinetBox(boxID);
 		return boxObjs[idx];
@@ -53,15 +59,15 @@ public class CabinetObject {
 
 	void loadBoxFromRedis() {
 		String numOfStr = redisObj.getMap().get(NUMOFBOX);
-		
+
 		if (numOfStr == null) {
 			numOfStr = DEFAULT_NUMOFBOX;
 			RedisIntf.setAttr(CabinetManager.redisArea, cabinetID, NUMOFBOX, DEFAULT_NUMOFBOX);
 		}
-		
+
 		int numOfBox = Integer.parseInt(numOfStr);
 		setBoxnum(numOfBox);
-		
+
 		if (boxObjs == null) {
 			boxObjs = new CabinetBoxManager[numOfBox];
 		}
@@ -80,36 +86,36 @@ public class CabinetObject {
 			int idx = getArrayIdx(boxID);
 			CabinetBoxManager box = boxObjs[idx];
 
-			if((box != null) && box.isEmptyExchangable()) {
+			if ((box != null) && box.isEmptyExchangable()) {
 				return box;
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	public CabinetBoxManager getFullBox(String batteryType) {
 		for (int boxID = 1; boxID <= getBoxnum(); boxID++) {
 			int idx = getArrayIdx(boxID);
 			CabinetBoxManager box = boxObjs[idx];
 
-			if((box != null) && box.isFullExchangable(batteryType)) {
+			if ((box != null) && box.isFullExchangable(batteryType)) {
 				return box;
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	public void showAllCabinetBox() {
 		for (int boxID = 1; boxID <= getBoxnum(); boxID++) {
 			CabinetBoxManager box = getBoxObject(boxID);
-			
+
 			logger.info(box.toString());
-		}		
+		}
 		System.out.println("");
 	}
-	
+
 	public RedisStoreObj getRedisObj() {
 		return redisObj;
 	}

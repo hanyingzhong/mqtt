@@ -92,17 +92,18 @@ public class MobileExchangeRequestHandler {
 		exchange.setRequestID(message.getRequestID());
 
 		sendPublish(exchange.destinationTopic(), exchange.encode2Json());
+		MobileExchangeRequestMgr.addRequest(exchange);
 	}
 
 	static void messageHandler(MobileExchangeRequestMessage message) {
 		CabinetBoxManager emptyBoxMgr = getEmptyBox(message);
 		CabinetBoxManager fullBoxMgr = getFullBox(message);
 		if (emptyBoxMgr == null) {
-			logger.info("no empty box useful.");
+			logger.info("{}: no empty box useful.", message.getDeviceID());
 			return;
 		}
 		if (fullBoxMgr == null) {
-			logger.info("no full box useful.");
+			logger.info("{}: no full box useful.", message.getDeviceID());
 			return;
 		}
 

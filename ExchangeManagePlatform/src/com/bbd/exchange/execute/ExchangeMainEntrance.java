@@ -26,7 +26,7 @@ public class ExchangeMainEntrance {
 		new ServiceMessageHandling().start();
 
 		if (newMqttClient.isConnected()) {
-			newMqttClient.sendSubscribe("exchange/#");
+			newMqttClient.sendSubscribe("exchangeResponse/#");
 			newMqttClient.sendSubscribe("exbattery/#");
 			System.out.println("connected.");
 		}
@@ -43,6 +43,8 @@ public class ExchangeMainEntrance {
 				if (!newMqttClient.isConnected()) {
 					System.out.println("connection lost.....reconnect");
 					newMqttClient.connect();
+					newMqttClient.sendSubscribe("exchangeResponse/#");
+					newMqttClient.sendSubscribe("exbattery/#");
 				}
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block

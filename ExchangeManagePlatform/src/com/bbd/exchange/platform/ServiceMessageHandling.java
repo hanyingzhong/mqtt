@@ -6,14 +6,14 @@ import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.bbd.exchange.message.ExchangeRequest;
+import com.bbd.exchange.message.ExchangeMessage;
 
 public class ServiceMessageHandling extends Thread {
 	ExecutorService fixedThreadPool = Executors.newFixedThreadPool(1);
 
 	@Override
 	public void run() {
-		ExchangeRequest message;
+		ExchangeMessage message;
 		Timer timer = new Timer();  
 		timer.schedule(new TimerTask() {  
 		        public void run() {  

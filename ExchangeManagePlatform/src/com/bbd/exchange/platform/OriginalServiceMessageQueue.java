@@ -1,8 +1,8 @@
 package com.bbd.exchange.platform;
 
-import com.bbd.exchange.message.ExchangeRequest;
+import com.bbd.exchange.message.ExchangeMessage;
 
 public interface OriginalServiceMessageQueue {
-	void add(ExchangeRequest message);
-	ExchangeRequest pull();
+	void add(ExchangeMessage message);
+	ExchangeMessage pull();
 }

@@ -44,6 +44,9 @@ public class CommonClientMqttMsgCallback implements MqttCallback{
 		if(CommandType.FROM_EXCHANGER == getMsgSource(topic)) {
 			ServiceMessageQueue.getInstance().add(new CommonExchangeRequest(topic, message.toString()));
 		}
+		else {
+			System.out.println(topic + ":" + message);
+		}
 	}
 
 }

@@ -2,12 +2,12 @@ package com.bbd.exchange.platform;
 
 import java.util.Date;
 
-import com.bbd.exchange.message.ExchangeRequest;
+import com.bbd.exchange.message.ExchangeMessage;
 
 public class ServiceMessageHandlingTask implements Runnable {
-	ExchangeRequest message;
+	ExchangeMessage message;
 
-	public ServiceMessageHandlingTask(ExchangeRequest message) {
+	public ServiceMessageHandlingTask(ExchangeMessage message) {
 		this.message = message;
 	}
 
