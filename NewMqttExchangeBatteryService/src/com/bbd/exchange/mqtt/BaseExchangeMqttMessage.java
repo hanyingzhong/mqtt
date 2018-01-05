@@ -16,7 +16,8 @@ public class BaseExchangeMqttMessage {
 	final static int boxIdBaseValue = 0xa000;
 	final static int cmdTagValue = 0x0501;
 	final static int timeTagValue = 0x9000;
-	final static int valtageValue = 0x8000;
+	final static int voltageTagValue = 0x8000;
+	final static int versionTagValue = 0x8001;
 
 	public Topic getTopic() {
 		return topic;
@@ -46,6 +47,7 @@ public class BaseExchangeMqttMessage {
 	String cmd = new String("");
 	String time = null;
 	String cabinetVoltage = null;
+	String cabinetVersion = null;
 
 	public List<CabinetBox> getMsg() {
 		return msgList;
@@ -108,8 +110,13 @@ public class BaseExchangeMqttMessage {
 				continue;
 			}
 			
-			if (paramID == valtageValue) {
+			if (paramID == voltageTagValue) {
 				pos = decodeCabinetVoltage(buffer, pos);
+				continue;
+			}
+			
+			if (paramID == versionTagValue) {
+				pos = decodeCabinetVersion(buffer, pos);
 				continue;
 			}
 			
@@ -172,7 +179,7 @@ public class BaseExchangeMqttMessage {
 		int length;
 
 		tag = NumberUtil.byte2ToUnsignedShort(buffer, pos);
-		if (tag != valtageValue) {
+		if (tag != voltageTagValue) {
 			return -1;
 		}
 		pos += 2;
@@ -188,6 +195,32 @@ public class BaseExchangeMqttMessage {
 
 		pos += length;
 		cabinetVoltage = param;
+		return pos;
+	}
+	
+	public int decodeCabinetVersion(byte[] buffer, int pos) {
+		int tag;
+		String param;
+		int length;
+
+		tag = NumberUtil.byte2ToUnsignedShort(buffer, pos);
+		if (tag != versionTagValue) {
+			return -1;
+		}
+		pos += 2;
+		length = NumberUtil.byte2ToUnsignedShort(buffer, pos);
+		pos += 2;
+
+		try {
+			param = new String(buffer, pos, length, "utf-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return -1;
+		}
+
+		pos += length;
+		cabinetVersion = param;
+		logger.info("version £º {}", cabinetVersion);
 		return pos;
 	}
 	

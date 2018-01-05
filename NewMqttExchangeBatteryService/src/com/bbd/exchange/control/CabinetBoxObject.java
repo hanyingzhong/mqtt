@@ -141,7 +141,7 @@ public class CabinetBoxObject implements ExchangeControlObject {
 		ScheduledFuture<?> result = TimerMgr.setTimer(task, timerLength);
 		if (result != null) {
 			getTimerMap().put(timerID, result);
-			logger.info("{}, Set timer : {}", getBoxID(), timerID);
+			logger.info("{}, Set timer : {}s", getBoxID(), timerID);
 		}
 	}
 
