@@ -303,7 +303,8 @@ public class ExchangeServiceRequestMgr {
 		logger.info("{}@{} received door closed message", boxObj.getBoxID(), boxObj.getBoxState());
 
 		if (boxObj.getBoxState().equals(CabinetBoxObject.EMPTY_W4CLOSED)) {
-			if (ele.isBatteryExist()) {
+			//if (ele.isBatteryExist()) {
+			if (true) {
 				CabinetBoxObject associatedBox = null;
 
 				/* the battery is returned successfully. */

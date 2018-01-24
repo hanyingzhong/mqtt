@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.bbd.exchange.control.DeviceMgrContainer;
 import com.bbd.exchange.util.MqttCfgUtil;
 import com.bbd.exchange.util.NumberUtil;
+import com.bbd.rfid.RfidConfigParam;
 
 public class DownstreamCabinetMessage implements ExchangeMqttMessage {
     private static final Logger logger = LoggerFactory.getLogger(DownstreamCabinetMessage.class);
@@ -186,6 +187,23 @@ public class DownstreamCabinetMessage implements ExchangeMqttMessage {
 		return posCurr;
 	}
 
+	int encodeRfidConfig(byte[] buffer, int pos) {
+		int posCurr = pos;
+		int id = 0x9003;
+
+		byte[] command = RfidConfigParam.getAllOneRfidConfigParam(); //RfidConfigParam.getRfidConfigParam();
+
+		bytesArrayCopy(NumberUtil.unsignedShortToByte2(id), 0, buffer, posCurr, 2);
+		posCurr += 2;
+
+		bytesArrayCopy(NumberUtil.unsignedShortToByte2(command.length), 0, buffer, posCurr, 2);
+		posCurr += 2;
+		bytesArrayCopy(command, 0, buffer, posCurr, command.length);
+		posCurr += command.length;
+
+		return posCurr;
+	}
+	
 	int encodeBoxInfo(byte[] buffer, int pos) {
 		int posCurr = pos;
 		int id = 0xA000 + getID();

@@ -17,5 +17,6 @@
 	<classpathentry kind="lib" path="lib/ezmorph-1.0.6.jar"/>
 	<classpathentry kind="lib" path="lib/json-lib-2.4-jdk15.jar"/>
 	<classpathentry kind="lib" path="lib/mina-core-2.0.16.jar"/>
+	<classpathentry kind="lib" path="lib/rfid.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -195,6 +195,7 @@ public class BaseExchangeMqttMessage {
 
 		pos += length;
 		cabinetVoltage = param;
+		logger.info("cabinet volatage : {}", cabinetVoltage);
 		return pos;
 	}
 	
