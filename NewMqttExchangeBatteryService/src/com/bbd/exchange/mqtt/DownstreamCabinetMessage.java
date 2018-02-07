@@ -191,7 +191,8 @@ public class DownstreamCabinetMessage implements ExchangeMqttMessage {
 		int posCurr = pos;
 		int id = 0x9003;
 
-		byte[] command = RfidConfigParam.getAllOneRfidConfigParam(); //RfidConfigParam.getRfidConfigParam();
+		//byte[] command = RfidConfigParam.getAllOneRfidConfigParam(); //RfidConfigParam.getRfidConfigParam();
+		byte[] command = RfidConfigParam.getRfidConfigParam();
 
 		bytesArrayCopy(NumberUtil.unsignedShortToByte2(id), 0, buffer, posCurr, 2);
 		posCurr += 2;
