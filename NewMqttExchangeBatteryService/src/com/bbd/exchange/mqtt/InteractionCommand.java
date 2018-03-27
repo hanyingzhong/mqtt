@@ -18,7 +18,9 @@ public class InteractionCommand {
 	public static final String DOWN_SUB_OPEN = "1";
 	public static final String DOWN_SUB_SYNCBOXSTATUS = "2";
 	public static final String DOWN_SUB_SYNCTIME = "3";
-	public static final String DOWN_SUB_ACK = "4";
+	public static final String DOWN_SUB_ACK = "4";  //not used in msg
+	public static final String DOWN_SUB_LIGHTOFF = "4";//
+	public static final String DOWN_SUB_LIGHTON = "5";
 	
 	public static final int RESCODE_CLOSED = 0;
 	public static final int RESCODE_OPENED = 1;

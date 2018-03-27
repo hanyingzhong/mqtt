@@ -267,4 +267,7 @@ public class DownstreamCabinetMessage implements ExchangeMqttMessage {
 		this.deviceID = deviceID;
 	}
 
+	public String getDeviceID() {
+		return deviceID;
+	}
 }

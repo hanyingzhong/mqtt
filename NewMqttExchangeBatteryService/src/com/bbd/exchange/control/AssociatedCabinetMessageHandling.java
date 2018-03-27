@@ -1,9 +1,13 @@
 package com.bbd.exchange.control;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bbd.exchange.mqtt.CabinetBoxContainer;
+import com.bbd.exchange.mqtt.DownLightAllCabinetBoxMessage;
+import com.bbd.exchange.mqtt.DownLightCabinetBoxMessage;
 import com.bbd.exchange.mqtt.DownstreamAssociationAckMessage;
 import com.bbd.exchange.mqtt.InteractionCommand;
 import com.bbd.exchange.mqtt.UpstreamCabinetMessage;
@@ -31,6 +35,20 @@ public class AssociatedCabinetMessageHandling implements CabinetMessageHandling 
 		logger.info("send associate ACK to {}/{}", deviceID, cabinetID);
 	}
 
+	void sendDownLightMessage(String deviceID, String cabinetID, int boxId) {
+		DownLightCabinetBoxMessage dmsg = new DownLightCabinetBoxMessage(cabinetID, boxId, true, false);
+		dmsg.setDeviceID(deviceID);
+		dmsg.publish(dmsg);
+		logger.info("send down light message to {}/{}"+boxId, deviceID, cabinetID);
+	}
+
+	void sendDownLightAllBoxMessage(String deviceID, String cabinetID, List<CabinetBoxContainer> boxList) {
+		DownLightAllCabinetBoxMessage dmsg = new DownLightAllCabinetBoxMessage(cabinetID, boxList);
+		dmsg.setDeviceID(deviceID);
+		dmsg.publish(dmsg);
+		logger.info("send down light message to {}/{}", deviceID, cabinetID);
+	}
+	
 	public void handling(UpstreamCabinetMessage msg) {
 		DeviceMgrContainer.getInstance().insertCabinet(msg.getDeviceID(), msg.getCabinetID());
 		CabinetControlObject cabinetObj = CabinetMgrContainer.getInstance().getCabinetControlObject(msg.getCabinetID());
@@ -66,5 +84,16 @@ public class AssociatedCabinetMessageHandling implements CabinetMessageHandling 
 			logger.info("{}", boxObj);
 			boxObj.store2Redis();
 		}
+		
+		sendDownLightAllBoxMessage(msg.getDeviceID(), msg.getCabinetID(), msg.getBoxList());
+/*		for (CabinetBoxContainer ele : msg.getBoxList()) {
+			CabinetBoxObject boxObj = CabinetMgrContainer.getInstance().getCabinetBox(msg.getCabinetID(),
+					ele.getId() - 1);
+
+			if (true == ele.isBatteryExist()) {
+				sendDownLightMessage(msg.getDeviceID(), msg.getCabinetID(), ele.getId());
+				break;
+			}
+		}*/
 	}
 }

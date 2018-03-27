@@ -15,6 +15,7 @@ import javax.swing.JTextField;
 
 import com.bbd.exchange.mqtt.CabinetBoxContainer;
 import com.bbd.exchange.mqtt.DownCabinetStateSyncMessage;
+import com.bbd.exchange.mqtt.DownLightCabinetBoxMessage;
 import com.bbd.exchange.mqtt.DownRebootCabinetMessage;
 import com.bbd.exchange.mqtt.DownstreamCabinetMessage;
 import com.bbd.exchange.mqtt.InteractionCommand;
@@ -50,6 +51,7 @@ public class SimulationCabinetClient extends JFrame {
 	static JTextField boxIdText;
 	static Choice boxStatusChoice;
 	static Choice batteryExistChoice;
+	static Choice lightStatusChoice;
 
 	public SimulationCabinetClient() {
 		this.setSize(350, 200);
@@ -144,6 +146,23 @@ public class SimulationCabinetClient extends JFrame {
 		panel.add(batteryExistChoice);
 	}
 
+	private static void placeLightStatus(JPanel panel, Font font) {
+		JLabel passwordLabel = new JLabel("Light status:");
+		passwordLabel.setBounds(10, 400, 100, 25);
+		panel.add(passwordLabel);
+
+		lightStatusChoice = new Choice();
+		lightStatusChoice.add("idle");
+		lightStatusChoice.add("red");
+		lightStatusChoice.add("green");
+		lightStatusChoice.setBounds(150, 400, 250, 30);
+		lightStatusChoice.setSize(200, 120);
+		lightStatusChoice.setVisible(true);
+		lightStatusChoice.setFont(font);
+		panel.add(lightStatusChoice);
+	}
+
+	
 	static boolean checkIdValidity() {
 		if (Integer.parseInt(boxIdText.getText()) > 12) {
 			return false;
@@ -308,6 +327,41 @@ public class SimulationCabinetClient extends JFrame {
 		});
 	}
 
+	private static void placeLightButtonType(JPanel panel, Font font) {
+		JButton notifyButton = new JButton("Light");
+		notifyButton.setBounds(10, 550, 150, 25);
+		notifyButton.setFont(font);
+		panel.add(notifyButton);
+
+		notifyButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (false == checkIdValidity()) {
+					JOptionPane.showMessageDialog(null, "Box-ID:" + boxIdText.getText() + " must be in[0,12]");
+					return;
+				}
+
+				boolean color = false;
+				boolean light = true;
+				
+				if(lightStatusChoice.getSelectedItem().equals("red")) {
+					color = false;
+				}
+				if(lightStatusChoice.getSelectedItem().equals("green")) {
+					color = true;
+				}
+				if(lightStatusChoice.getSelectedItem().equals("idle")) {
+					light = false;
+				}
+				
+				DownLightCabinetBoxMessage dmsg = new DownLightCabinetBoxMessage(cabinetIdText.getText(), 
+						Integer.parseInt(boxIdText.getText()), light, color);
+				dmsg.setDeviceID(deviceIdText.getText());
+				dmsg.publish(dmsg);
+			}
+		});
+	}
+	
 	private static void placeNotifyButtonType(JPanel panel, Font font) {
 		JButton notifyButton = new JButton("Notify");
 		notifyButton.setBounds(350, 550, 150, 25);
@@ -368,6 +422,7 @@ public class SimulationCabinetClient extends JFrame {
 		placeAssoButtonType(panel, font);
 		placeDisassoButtonType(panel, font);
 		placeNotifyButtonType(panel, font);
+		placeLightButtonType(panel, font);
 
 		/* generate downstream message */
 		placeOpenButtonType(panel, font);
@@ -377,6 +432,7 @@ public class SimulationCabinetClient extends JFrame {
 		// create exchange button
 		placeBoxStatusChoose(panel, font);
 		placeBatteryExistChoose(panel, font);
+		placeLightStatus(panel, font);
 	}
 
 	public static void main(String[] args) {

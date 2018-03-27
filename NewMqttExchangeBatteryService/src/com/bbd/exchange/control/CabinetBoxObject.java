@@ -113,6 +113,14 @@ public class CabinetBoxObject implements ExchangeControlObject {
 		RedisUtils.returnResource(jedis);
 	}
 
+	public String getSingleAttrFromRedis(String attr) {
+		Jedis jedis = RedisUtils.getJedis();
+		jedis.select(CabinetBoxObject.redisStoreAera);
+		String result = jedis.hget(getBoxID(), attr);
+		RedisUtils.returnResource(jedis);		
+		return result;
+	}
+	
 	public String toString() {
 		return boxID + ":" + map.toString();
 	}
